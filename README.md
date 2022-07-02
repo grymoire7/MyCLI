@@ -1,10 +1,10 @@
-== MyCLI
+# MyCLI
 
-=== Description
+## Description
 MyCLI is a highly-configurable, data-driven command line tool designed for
 brevity and versitility.
 
-==== An origin story
+### An origin story
 If you've used the command line for a long time you eventually accumulate a
 collection of scripts, functions, and aliases which are intended to make
 your life easier. At first, this works well and life is good. Eventually,
@@ -26,7 +26,7 @@ That's all nice in theory, but we still need it to have some initial
 functionality to prove the concept. Below are the subcommands we have out of the
 box.
 
-==== New file templating
+#### New file templating
 Honestly, your current favorite editor might have some facility for this.
 However, I don't want this functionality to be dependent on my editor
 configuration and being able to tranfer that nicely to a new machine.
@@ -39,7 +39,7 @@ m t zet "how-to-eat-fish"
 
 Data driven through the MyCLI configuration file (config.yaml).
 
-==== Local search
+#### Local search
 
 ```shell
 m search "search term"
@@ -47,7 +47,7 @@ m search --options "-i" "search term"
 m search --group "code" "search term"
 ```
 
-==== Aliases
+#### Aliases
 
 ```shell
 m alias [alias]
@@ -63,7 +63,7 @@ ma s '2022-07-07'   # m t c sprint -k 2022-07-07
 ma c
 ```
 
-=== Install
+### Install
 
 ```shell
 MYCLI_DIR=$HOME/bin
@@ -77,16 +77,16 @@ gem install thor
 m help  # or just m
 ```
 
-=== Configure
+### Configure
 
 ```shell
 # edit $MYCLI_DIR/config.yaml
 # define template and search paths
 ```
 
-=== Usage
+### Usage
 
 
-=== Contribute
+### Contribute
 See `CONTRIBUTING.md`.
 
