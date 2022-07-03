@@ -26,7 +26,9 @@ class App < Thor
 
   desc "search NEEDLE", "Search pre-defined paths and files"
   def search(needle)
-    puts set_color("Search results:\n", :green, :bold)
+    cmd = Search.new.search(needle)
+    results = run(cmd, capture: true)
+    puts results
   end
 end
 
