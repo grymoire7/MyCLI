@@ -12,19 +12,19 @@ require 'all'        # include all the local things
 class App < Thor
   include Thor::Actions
 
-  class_option :verbose, :type => :boolean
+  class_option :verbose, type: :boolean
 
   def self.exit_on_failure?
     true
   end
 
-  desc "howdy", "Say howdy"
-  subcommand "howdy", Howdy
+  desc 'howdy', 'Say howdy'
+  subcommand 'howdy', Howdy
 
-  desc "templates", "List top all templates"
-  subcommand "templates", Templates
+  desc 'templates', 'List top all templates'
+  subcommand 'templates', Templates
 
-  desc "search NEEDLE", "Search pre-defined paths and files"
+  desc 'search NEEDLE', 'Search pre-defined paths and files'
   def search(needle)
     cmd = Search.new.search(needle)
     results = run(cmd, capture: true)

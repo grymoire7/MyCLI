@@ -8,21 +8,21 @@ require 'io/console' # for single char input (getch)
 class Install < Thor
   include Thor::Actions
 
-  class_option :dryrun, :type => :boolean
+  class_option :dryrun, type: :boolean
 
   def self.exit_on_failure?
     true
   end
 
-  desc "install", "Install MyCLI"
+  desc 'install', 'Install MyCLI'
   def install
     @namespace = OpenStruct.new
     ns.mycli_repo_path = __dir__
 
     if options[:dryrun]
-      say "Installing in DryRun mode..."
+      say 'Installing in DryRun mode...'
     else
-      say "Installing..."
+      say 'Installing...'
     end
 
     handle_name
@@ -36,39 +36,14 @@ class Install < Thor
     template_filepath = File.join(__dir__, 'm.erb')
     target_filepath = File.join(user_exec_path, 'm')
     ns.m_filepath = target_filepath
-    generate_file(template_filepath, target_filepath, permissions=0755)
+    generate_file(template_filepath, target_filepath, 0o0755)
 
     # Generate config.yaml
     template_filepath = File.join(__dir__, 'config.yaml.erb')
     target_filepath = File.join(__dir__, 'config.yaml')
-    generate_file(template_filepath, target_filepath, permissions=0644)
+    generate_file(template_filepath, target_filepath, 0o0644)
 
-    h1 'Final words'
-    say <<~ENDSAY.strip
-      Your wrapper script `m` and `config.yaml` files have been generated!
-      Your initial `config.yaml` file points to files in `./examples`
-      and writes any output files to `./examples/output`.
-    ENDSAY
-
-    print "\n"
-    say set_color("  # create a new bash script in ./examples/output", :green)
-    say set_color("  m template bash bob # same as `m t b bob`", :white)
-
-    print "\n"
-    say set_color("  # create a new sprint .org file based on a template in ./examples/output", :green)
-    say set_color("  m template sprint sarah", :white)
-    say set_color("  # ^ same as `m t s sarah`", :green)
-
-    print "\n"
-    say set_color("  # search defined paths/files for text", :green)
-    say set_color("  m search puts # same as `m s puts`", :white)
-
-    print "\n"
-    say set_color("  # explore the help", :green)
-    say set_color("  m help", :white)
-
-    print "\n"
-    say "Check out `./config.yaml` and make it your own."
+    final_words
   end
   default_task :install
 
@@ -85,24 +60,24 @@ class Install < Thor
 
   # Returns true if Y/y is typed, false otherwise.
   # Considers the default valued typed if no input is provided.
-  def yes_no?(msg, default='y')
+  def yes_no?(msg, default = 'y')
     print msg
-    ans = STDIN.getch.strip.downcase
+    ans = $stdin.getch.strip.downcase
     ans = default if ans.empty?
     y = ans.start_with?('y')
-    puts "#{ans}"
+    puts ans
     y
   end
 
   def handle_ruby_version
-    h1 "Ruby version"
+    h1 'Ruby version'
 
     puts "You are currently using Ruby version #{RUBY_VERSION}."
-    say "The Thor gem seems to be here so I will use this version to run MyCLI in the future."
-    yn = yes_no?("Is that okay with you? [Yn]")
+    say 'The Thor gem seems to be here so I will use this version to run MyCLI in the future.'
+    yn = yes_no?('Is that okay with you? [Yn]')
     unless yn
-      msg = set_color("Okay... maybe try again later then.", color=:yellow)
-      raise Thor::Error.new(msg)
+      msg = set_color('Okay... maybe try again later then.', :yellow)
+      raise Thor::Error, msg
     end
     # create_file ".ruby-version" do
     #   RUBY_VERSION
@@ -114,8 +89,8 @@ class Install < Thor
     h1 'Full name'
 
     name = ''
-    while name.strip.empty? do
-      name = ask("What is your full name (used for author name in templating, etc.)?")
+    while name.strip.empty?
+      name = ask 'What is your full name (used for author name in templating, etc.)?'
       name.strip!
     end
     parts = name.split
@@ -138,7 +113,7 @@ class Install < Thor
       WARNING: This will retry in this way on ANY error, not just
       command not found.
     ENDSAY
-    yes_no?("\nWould you like to turn this feature on? [yN]", deafult='n')
+    yes_no?("\nWould you like to turn this feature on? [yN]", 'n')
   end
 
   def request_user_exec_path
@@ -154,16 +129,16 @@ class Install < Thor
 
     user_dir = __dir__
     if find_dir
-      user_dir = ask "Cool. What directory would you like to use?"
+      user_dir = ask 'Cool. What directory would you like to use?'
       user_dir = File.expand_path(user_dir)
 
-      until File.directory?(user_dir) do
-        try_again = yes_no? "Hmm... that doesn't look like a directory. Try again? [Yn]"
+      until File.directory?(user_dir)
+        try_again = yes_no? 'Hmm... that doesn\'t look like a directory. Try again? [Yn]'
         unless try_again
           user_dir = __dir__
           break
         end
-        user_dir = ask "What directory would you like to use?"
+        user_dir = ask 'What directory would you like to use?'
         user_dir = File.expand_path(user_dir)
       end
     end
@@ -176,12 +151,10 @@ class Install < Thor
     ERB.new(text).result(namespace.instance_eval { binding })
   end
 
-  def generate_file(template_filepath, target_filepath, permissions=0644)
+  def generate_file(template_filepath, target_filepath, permissions = 0o0644)
     h1 "Generate #{target_filepath} with ERB..."
 
-    if options[:dryrun]
-      puts "perms = #{permissions.to_s(8)}; umask = #{File.umask}"
-    end
+    puts "perms = #{permissions.to_s(8)}; umask = #{File.umask}" if options[:dryrun]
 
     template_raw = File.read(template_filepath)
     result = apply_erb(template_raw, ns)
@@ -195,6 +168,33 @@ class Install < Thor
     end
   end
 
+  def final_words
+    h1 'Final words'
+    say <<~ENDSAY.strip
+      Your wrapper script `m` and `config.yaml` files have been generated!
+      Your initial `config.yaml` file points to files in `./examples`
+      and writes any output files to `./examples/output`.
+    ENDSAY
+
+    print "\n"
+    say set_color('  # create a new bash script in ./examples/output', :green)
+    say set_color('  m template bash bob # same as `m t b bob`', :white)
+
+    print "\n"
+    say set_color('  # create a new sprint .org file based on a template in ./examples/output', :green)
+    say set_color('  m template sprint sarah', :white)
+    say set_color('  # ^ same as `m t s sarah`', :green)
+
+    print "\n"
+    say set_color('  # search defined paths/files for text', :green)
+    say set_color('  m search puts # same as `m s puts`', :white)
+
+    print "\n"
+    say set_color('  # explore the help', :green)
+    say set_color('  m help', :white)
+
+    say "\nCheck out `./config.yaml` and make it your own."
+  end
 end
 
 Install.start(ARGV)

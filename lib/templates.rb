@@ -8,7 +8,7 @@ require 'all'        # include all the local things
 class Templates < Thor
   include Thor::Actions
 
-  desc "create TEMPLATE BASENAME", "create new file from template"
+  desc 'create TEMPLATE BASENAME', 'create new file from template'
   long_desc <<-LONGDESC
     `m create` will create a new file from a specified template.
 
@@ -44,7 +44,7 @@ class Templates < Thor
     namespace = config_namespace(config, options[:subkey])
     namespace.today             = Date.today.strftime('%Y-%m-%d')
     namespace.template_name     = template_name
-    namespace.target_filename   = nil  # set later after computed
+    namespace.target_filename   = nil # set later after computed
     namespace.author            = globals['name']
     namespace.template_filepath = template_filepath
 
@@ -58,7 +58,7 @@ class Templates < Thor
     create_file(config, namespace)
   end
 
-  desc "list", "List all templates"
+  desc 'list', 'List all templates'
   def list
     puts set_color("Available templates:\n", :green, :bold)
     shell = Thor::Shell::Basic.new
@@ -93,9 +93,9 @@ class Templates < Thor
   def validate_template(template_name)
     config = templates[template_name]
 
-    if config == nil
-      msg = set_color("No \"#{template_name}\" template was found.", color=:yellow)
-      raise Thor::Error.new(msg)
+    if config.nil?
+      msg = set_color("No \"#{template_name}\" template was found.", :yellow)
+      raise Thor::Error, msg
     end
 
     template_filepath = File.expand_path(config['filepath'])
@@ -103,26 +103,26 @@ class Templates < Thor
 
     # bail if template_filepath does not exist
     unless File.file?(template_filepath)
-      msg = set_color("File not found: #{template_filepath}", color=:yellow)
-      raise Thor::Error.new(msg)
+      msg = set_color("File not found: #{template_filepath}", :yellow)
+      raise Thor::Error, msg
     end
 
     # bail if target_path does not exist
     unless File.directory?(target_path)
-      msg = set_color("Directory not found: #{target_path}", color=:yellow)
-      raise Thor::Error.new(msg)
+      msg = set_color("Directory not found: #{target_path}", :yellow)
+      raise Thor::Error, msg
     end
   end
 
   def resolve_template_name(template_name)
-    possibles = templates.keys.filter{ |k| k.start_with?(template_name) }
+    possibles = templates.keys.filter { |k| k.start_with?(template_name) }
     case possibles.size
     when 0
-      msg = set_color("Template not found: #{template_name}", color=:yellow)
-      raise Thor::Error.new(msg)
+      msg = set_color("Template not found: #{template_name}", :yellow)
+      raise Thor::Error, msg
     when 2..Float::INFINITY
-      msg = set_color("Template name is not unique: #{template_name}", color=:yellow)
-      raise Thor::Error.new(msg)
+      msg = set_color("Template name is not unique: #{template_name}", :yellow)
+      raise Thor::Error, msg
     end
     possibles.first
   end
@@ -133,11 +133,11 @@ class Templates < Thor
     if namespace_data
       default_subkey = config['namespace_subkey']
 
-      if options[:subkey] && namespace_data[subkey]
-        subkey_data = namespace_data[subkey]
-      else
-        subkey_data = namespace_data[default_subkey]
-      end
+      subkey_data = if options[:subkey] && namespace_data[subkey]
+                      namespace_data[subkey]
+                    else
+                      namespace_data[default_subkey]
+                    end
       namespace_data = subkey_data if subkey_data
     end
 
@@ -154,27 +154,33 @@ class Templates < Thor
     target_prefix + basename + target_suffix
   end
 
-  def create_file(config, ns)
-    # filter file with ERB if extension is .erb
-    if File.extname(ns.template_filepath) == '.erb'
-      perms = config['target']['permissions']&.to_i(8) || 0644
-      puts "Filter file copy through ERB"
-      puts "perms = #{perms}, #{perms.to_s(8)}, #{perms.class}; umask = #{File.umask}"
-
-      template_raw = File.read(ns.template_filepath)
-      result = apply_erb(template_raw, ns)
-      File.open(ns.target_filepath, 'w+', perms) do |f|
-        f.write(result)
-      end
-      puts result
+  def create_file(config, namespace)
+    if File.extname(namespace.template_filepath) == '.erb'
+      create_file_from_erb(config, namespace)
     else
-      puts "FileUtils.copy_file"
-      FileUtils.copy_file(
-        ns.template_filepath,
-        ns.target_filepath,
-        preserve: true
-      )
+      create_file_from_copy(namespace)
     end
   end
 
+  def create_file_from_erb(config, namespace)
+    perms = config['target']['permissions']&.to_i(8) || 0o644
+    puts 'Filter file copy through ERB'
+    puts "perms = #{perms}, #{perms.to_s(8)}, #{perms.class}; umask = #{File.umask}"
+
+    template_raw = File.read(namespace.template_filepath)
+    result = apply_erb(template_raw, namespace)
+    File.open(namespace.target_filepath, 'w+', perms) do |f|
+      f.write(result)
+    end
+    puts result
+  end
+
+  def create_file_from_copy(namespace)
+    puts 'FileUtils.copy_file'
+    FileUtils.copy_file(
+      namespace.template_filepath,
+      namespace.target_filepath,
+      preserve: true
+    )
+  end
 end
