@@ -8,6 +8,8 @@ require 'io/console' # for single char input (getch)
 class Install < Thor
   include Thor::Actions
 
+  class_option :dryrun, :type => :boolean
+
   def self.exit_on_failure?
     true
   end
@@ -15,10 +17,14 @@ class Install < Thor
   desc "install", "Install MyCLI"
   def install
     @namespace = OpenStruct.new
-
     ns.mycli_repo_path = __dir__
 
-    puts "Installing..."
+    if options[:dryrun]
+      say "Installing in DryRun mode..."
+    else
+      say "Installing..."
+    end
+
     handle_name
     puts "Okay #{ns.first_name}, let's get started!"
     handle_ruby_version
@@ -37,6 +43,32 @@ class Install < Thor
     target_filepath = File.join(__dir__, 'config.yaml')
     generate_file(template_filepath, target_filepath, permissions=0644)
 
+    h1 'Final words'
+    say <<~ENDSAY.strip
+      Your wrapper script `m` and `config.yaml` files have been generated!
+      Your initial `config.yaml` file points to files in `./examples`
+      and writes any output files to `./examples/output`.
+    ENDSAY
+
+    print "\n"
+    say set_color("  # create a new bash script in ./examples/output", :green)
+    say set_color("  m template bash bob # same as `m t b bob`", :white)
+
+    print "\n"
+    say set_color("  # create a new sprint .org file based on a template in ./examples/output", :green)
+    say set_color("  m template sprint sarah", :white)
+    say set_color("  # ^ same as `m t s sarah`", :green)
+
+    print "\n"
+    say set_color("  # search defined paths/files for text", :green)
+    say set_color("  m search puts # same as `m s puts`", :white)
+
+    print "\n"
+    say set_color("  # explore the help", :green)
+    say set_color("  m help", :white)
+
+    print "\n"
+    say "Check out `./config.yaml` and make it your own."
   end
   default_task :install
 
@@ -44,6 +76,11 @@ class Install < Thor
 
   def ns
     @namespace
+  end
+
+  def h1(str)
+    print "\n"
+    say set_color(str, :green, :bold)
   end
 
   # Returns true if Y/y is typed, false otherwise.
@@ -58,10 +95,11 @@ class Install < Thor
   end
 
   def handle_ruby_version
-    print "\n"
-    say set_color("Ruby version", :green, :bold)
+    h1 "Ruby version"
+
     puts "You are currently using Ruby version #{RUBY_VERSION}."
-    yn = yes_no?("The Thor gem seems to be here so I will use this version to run MyCLI in the future.  Is that okay with you? [Yn]")
+    say "The Thor gem seems to be here so I will use this version to run MyCLI in the future."
+    yn = yes_no?("Is that okay with you? [Yn]")
     unless yn
       msg = set_color("Okay... maybe try again later then.", color=:yellow)
       raise Thor::Error.new(msg)
@@ -73,8 +111,8 @@ class Install < Thor
   end
 
   def handle_name
-    print "\n"
-    say set_color("Full name", :green, :bold)
+    h1 'Full name'
+
     name = ''
     while name.strip.empty? do
       name = ask("What is your full name (used for author name in templating, etc.)?")
@@ -88,8 +126,8 @@ class Install < Thor
   end
 
   def request_retry_on_error
-    print "\n"
-    say set_color("Experimental feature", :green, :bold)
+    h1 'Experimental feature'
+
     say <<~ENDSAY.strip
       The MyCLI wrapper script has an experimental feature that changes how it
       handles errors from Thor. If you turn this feature on it will retry with
@@ -104,15 +142,15 @@ class Install < Thor
   end
 
   def request_user_exec_path
-    print "\n"
-    say set_color("User path directory", :green, :bold)
+    h1 'User path directory'
+
     say <<~ENDSAY.strip
       We need to find a place to put your 'm' wrapper script.
       If you provide a directory in your path, we can put it there.
       Otherwise, we will put it in the MyCLI directory and you can
       create an alias to it later.
     ENDSAY
-    find_dir = yes_no?("Would you like to provide a directory? [Yn]")
+    find_dir = yes_no?("\nWould you like to provide a directory? [Yn]")
 
     user_dir = __dir__
     if find_dir
@@ -139,17 +177,22 @@ class Install < Thor
   end
 
   def generate_file(template_filepath, target_filepath, permissions=0644)
-    print "\n"
-    say set_color("Generate #{target_filepath} with ERB...", :green, :bold)
+    h1 "Generate #{target_filepath} with ERB..."
 
-    puts "perms = #{permissions.to_s(8)}; umask = #{File.umask}"
+    if options[:dryrun]
+      puts "perms = #{permissions.to_s(8)}; umask = #{File.umask}"
+    end
 
     template_raw = File.read(template_filepath)
     result = apply_erb(template_raw, ns)
-    # File.open(target_filepath, 'w+', permissions) do |f|
-    #   f.write(result)
-    # end
-    puts result
+
+    if options[:dryrun]
+      puts result
+    else
+      File.open(target_filepath, 'w+', permissions) do |f|
+        f.write(result)
+      end
+    end
   end
 
 end
