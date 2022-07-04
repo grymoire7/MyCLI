@@ -32,53 +32,30 @@ class Templates < Thor
 
     See also: `m templates list` for a list of defined templates
   LONGDESC
+  option :subkey
   def create(template_name, basename)
     template_name = resolve_template_name(template_name)
     config = templates[template_name]
-
     validate_template(template_name)
 
     template_filepath = File.expand_path(config['filepath'])
     target_path = File.expand_path(config['target']['path'])
 
-    namespace = OpenStruct.new(
-      :today             => Date.today.strftime('%Y-%m-%d'),
-      :template_name     => template_name,
-      :target_filename   => nil,              # set later after computed
-      :author            => globals['name'],
-      :template_filepath => template_filepath
-    )
+    namespace = config_namespace(config, options[:subkey])
+    namespace.today             = Date.today.strftime('%Y-%m-%d')
+    namespace.template_name     = template_name
+    namespace.target_filename   = nil  # set later after computed
+    namespace.author            = globals['name']
+    namespace.template_filepath = template_filepath
 
-    target_suffix_raw = config['target']['suffix'] || ''
-    target_suffix = apply_erb(target_suffix_raw, namespace)
-
-    target_prefix_raw = config['target']['prefix'] || ''
-    target_prefix = apply_erb(target_prefix_raw, namespace)
-
-    target_filename = target_prefix + basename + target_suffix
+    target_filename = build_target_filename(config, basename, namespace)
     target_filepath = File.join(target_path, target_filename)
     namespace.target_filename = target_filename
+    namespace.target_filepath = target_filepath
 
     puts set_color("Creating new #{template_name} file as #{target_filepath} ...", :green)
-    # yn = yes?("Copy really?")
-    # puts "yn = #{yn.to_s}"
 
-    # filter file with ERB if extension is .erb
-    if File.extname(template_filepath) == '.erb'
-      perms = config['target']['permissions']&.to_i(8) || 0644
-      puts "Filter file copy through ERB"
-      puts "perms = #{perms}, #{perms.to_s(8)}, #{perms.class}; umask = #{File.umask}"
-
-      template_raw = File.read(template_filepath)
-      result = apply_erb(template_raw, namespace)
-      File.open(target_filepath, 'w+', perms) do |f|
-        f.write(result)
-      end
-      puts result
-    else
-      puts "FileUtils.copy_file"
-      FileUtils.copy_file template_filepath, target_filepath, preserve: true
-    end
+    create_file(config, namespace)
   end
 
   desc "list", "List all templates"
@@ -129,6 +106,7 @@ class Templates < Thor
       msg = set_color("File not found: #{template_filepath}", color=:yellow)
       raise Thor::Error.new(msg)
     end
+
     # bail if target_path does not exist
     unless File.directory?(target_path)
       msg = set_color("Directory not found: #{target_path}", color=:yellow)
@@ -148,4 +126,55 @@ class Templates < Thor
     end
     possibles.first
   end
+
+  def config_namespace(config, subkey)
+    namespace_data = config['namespace_data']
+
+    if namespace_data
+      default_subkey = config['namespace_subkey']
+
+      if options[:subkey] && namespace_data[subkey]
+        subkey_data = namespace_data[subkey]
+      else
+        subkey_data = namespace_data[default_subkey]
+      end
+      namespace_data = subkey_data if subkey_data
+    end
+
+    OpenStruct.new(namespace_data || {})
+  end
+
+  def build_target_filename(config, basename, namespace)
+    target_suffix_raw = config['target']['suffix'] || ''
+    target_suffix = apply_erb(target_suffix_raw, namespace)
+
+    target_prefix_raw = config['target']['prefix'] || ''
+    target_prefix = apply_erb(target_prefix_raw, namespace)
+
+    target_prefix + basename + target_suffix
+  end
+
+  def create_file(config, ns)
+    # filter file with ERB if extension is .erb
+    if File.extname(ns.template_filepath) == '.erb'
+      perms = config['target']['permissions']&.to_i(8) || 0644
+      puts "Filter file copy through ERB"
+      puts "perms = #{perms}, #{perms.to_s(8)}, #{perms.class}; umask = #{File.umask}"
+
+      template_raw = File.read(ns.template_filepath)
+      result = apply_erb(template_raw, ns)
+      File.open(ns.target_filepath, 'w+', perms) do |f|
+        f.write(result)
+      end
+      puts result
+    else
+      puts "FileUtils.copy_file"
+      FileUtils.copy_file(
+        ns.template_filepath,
+        ns.target_filepath,
+        preserve: true
+      )
+    end
+  end
+
 end
