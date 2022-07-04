@@ -1,0 +1,56 @@
+# MyCLI configuration
+sprint_data: &sprint_data
+  'default':
+    deploy_date: 'YYYY-MM-DD'
+    feature_freeze_date: 'YYYY-MM-DD'
+    eng_dc: 'Dev Coordinator'
+    qa_dc: 'QA Coordinator'
+  '2022-07-07':
+    deploy_date: '2022-07-07'
+    feature_freeze_date: '2022-06-27'
+    eng_dc: 'Josh Miller'
+    qa_dc: 'Zheni Mihaly'
+globals:
+  editor:
+    executable: emacsclient
+    format: "+#{line} #{file}"
+  name: "Tracy Atteberry"
+commands:
+  create:
+    templates:
+      sprint:
+        filepath: "<%= mycli_repo_path %>/examples/org/sprint.erb"
+        target:
+          path: "~/org"
+          suffix: ".org"
+        namespace_data: *sprint_data
+        namespace_subkey: 'default'
+      zet:
+        filepath: "<%= mycli_repo_path %>/examples/org/zet.erb"
+        target:
+          path: "<%= mycli_repo_path %>/examples/output"
+          suffix: ".org"
+          prefix: "<%= today %>-"
+          permissions: '0644'   # settable on erb files only
+      bash:
+        filepath: "<%= mycli_repo_path %>/examples/bin/example_script.sh"
+        target:
+          path: "<%= mycli_repo_path %>/examples/output"
+      python:
+        filepath: "<%= mycli_repo_path %>/examples/bin/example_script.py"
+        target:
+          path: "<%= mycli_repo_path %>/examples/output"
+          suffix: ".py"
+      ruby:
+        filepath: "<%= mycli_repo_path %>/examples/bin/example_script.rb"
+        target:
+          path: "<%= mycli_repo_path %>/examples/output"
+          suffix: ".rb"
+  search:
+    executable: rg
+    arguments: "-i -n --color always"
+    paths:
+      - "<%= mycli_repo_path %>/examples/org"
+      - "<%= mycli_repo_path %>/examples/bin"
+      - "<%= mycli_repo_path %>/README.md"
+      - "<%= mycli_repo_path %>/lib"

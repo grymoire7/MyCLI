@@ -63,11 +63,24 @@ ma s '2022-07-07'   # m t c sprint -k 2022-07-07
 ma c
 ```
 
-### Install
+### Install (WIP)
+
+First, make sure you're using the version of ruby that you want to install thor
+in and use to run MyCLI. Then run the commands below. The install script is
+interactive.
 
 ```shell
-MYCLI_DIR=$HOME/bin
-git clone .... $MYCLI_DIR
+gem install thor
+git clone https://github.com/grymoire7/MyCLI.git
+cd MyCLI && ruby install.rb
+```
+
+#### Manual install
+
+```shell
+MYCLI_DIR=$HOME/projects
+cd $MYCLI_DIR
+git clone https://github.com/grymoire7/MyCLI.git
 cp $MYCLI_DIR/MyCLI/m.sh ~/bin/m
 cp $MYCLI_DIR/example.config.yaml $MYCLI_DIR/config.yaml
 # edit m to use correct ruby version and repo path
