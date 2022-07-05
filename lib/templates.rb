@@ -129,6 +129,7 @@ class Templates < Thor
 
   def config_namespace(config, subkey)
     namespace_data = config['namespace_data']
+    # TODO: check namespace_data for url
 
     if namespace_data
       default_subkey = config['namespace_subkey']

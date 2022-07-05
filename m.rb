@@ -25,8 +25,10 @@ class App < Thor
   subcommand 'templates', Templates
 
   desc 'search NEEDLE', 'Search pre-defined paths and files'
+  option :options, aliases: :o, banner: "<search options>"
+  option :group, aliases: :g, banner: "<path group>"
   def search(needle)
-    cmd = Search.new.search(needle)
+    cmd = Search.new.search(needle, options)
     results = run(cmd, capture: true)
     puts results
   end
