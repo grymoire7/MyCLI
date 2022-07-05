@@ -19,7 +19,7 @@ application specific config (like using `g` for `git` and moving aliases into
 so far.
 
 This problem was the impetus for this project, to a hide bunch of functionality
-behind a few simple commands and make everything highly configuralbe and
+behind a few simple commands and make everything highly configurable and
 extensible through a yaml config file.
 
 That's all nice in theory, but we still need it to have some initial
@@ -27,14 +27,15 @@ functionality to prove the concept. Below are the subcommands we have out of the
 box.
 
 #### New file templating
-Honestly, your current favorite editor might have some facility for this.
+Your current editor might have some limited facility for this.
 However, I don't want this functionality to be dependent on my editor
 configuration and being able to tranfer that nicely to a new machine.
 Instead I'd rather depend on flat, versioned, text file templates.
 
 ```shell
-m t bash
-m t zet "how-to-eat-fish"
+m template create bash bob
+m tcb bob
+m t c zet "how-to-eat-fish"
 ```
 
 Data driven through the MyCLI configuration file (config.yaml).
@@ -63,9 +64,9 @@ ma s '2022-07-07'   # m t c sprint -k 2022-07-07
 ma c
 ```
 
-### Install (WIP)
+### Install
 
-First, make sure you're using the version of ruby that you want to install thor
+First, make sure you're using the version of ruby that you want to install Thor
 in and use to run MyCLI. Then run the commands below. The install script is
 interactive.
 
@@ -75,27 +76,12 @@ git clone https://github.com/grymoire7/MyCLI.git
 cd MyCLI && ruby install.rb
 ```
 
-#### Manual install
-
-```shell
-MYCLI_DIR=$HOME/projects
-cd $MYCLI_DIR
-git clone https://github.com/grymoire7/MyCLI.git
-cp $MYCLI_DIR/MyCLI/m.sh ~/bin/m
-cp $MYCLI_DIR/example.config.yaml $MYCLI_DIR/config.yaml
-# edit m to use correct ruby version and repo path
-# install thor
-gem install thor
-# test
-m help  # or just m
-```
-
 ### Configure
 
-```shell
-# edit $MYCLI_DIR/config.yaml
-# define template and search paths
-```
+When first installed, the generated MyCLI `config.yaml` points to templates and
+other input files in `./examples` writes output to files in `./examples/output`.
+So you can begin playing right away. Soon, however, you may want to start
+customizing your `config.yaml` file to suit your own workflow.
 
 ### Usage
 
