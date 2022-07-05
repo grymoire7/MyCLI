@@ -39,7 +39,7 @@ class Search
 
     structure = structure.values if structure.is_a? Hash
 
-    structure.map{ |elt| find_all_values(elt) }.flatten.uniq.compact
+    structure.map { |elt| find_all_values(elt) }.flatten.uniq.compact
   end
 
   # returns an array of objects found at all instances of a given key in a
@@ -71,12 +71,15 @@ class Search
   #
   def deep_find(object, key)
     found = []
+
     if object.respond_to?(:key?) && object.key?(key)
       found << find_all_values(object[key])
     end
+
     if object.is_a? Enumerable
       found << object.map { |*a| deep_find(a.last, key) }
     end
+
     found.flatten.uniq.compact
   end
 
@@ -84,24 +87,24 @@ class Search
     return [] if config['paths'].nil?
 
     if options[:group].nil?
-      paths = find_all_values(config['paths'])
+      find_all_values(config['paths'])
     else
-      paths = deep_find(config['paths'], options[:group])
+      deep_find(config['paths'], options[:group])
     end
-
-    paths
   end
 
   def search_command(needle, options)
-    puts "Search options: #{options}"
+    puts "Search options: #{options}" if options[:verbose]
 
     exec = config['executable'] || 'rg'
     search_options = options[:options] || config['arguments'] || ''
     paths = search_paths(options)
-    # paths = search_paths(options).map{|s| "\"#{s}\""}
 
-    puts "----- search_paths ------"
-    pp paths
+    if options[:verbose]
+      puts '----- search_paths ------'
+      pp paths
+    end
+
     "#{exec} #{search_options} \"#{needle}\" #{paths.join(' ')}"
   end
 
