@@ -48,22 +48,6 @@ m search --options "-i" "search term"
 m search --group "code" "search term"
 ```
 
-#### Aliases
-
-```shell
-m alias [alias]
-# Config file snippet
-# --------------------
-#   aliases:
-#     zet: "m template create zet"
-#     s: "m template create sprint -k"
-#     c: "cal -A 1 -B 1"
-alias ma='m alias'
-ma zet how-to-juggle # m t c zet
-ma s '2022-07-07'   # m t c sprint -k 2022-07-07
-ma c
-```
-
 ### Install
 
 First, make sure you're using the version of ruby that you want to install Thor
@@ -76,15 +60,128 @@ git clone https://github.com/grymoire7/MyCLI.git
 cd MyCLI && ruby install.rb
 ```
 
+### Experiment
+
+When first created, the generated MyCLI `config.yaml` points to templates and
+other input files in `./examples` writes output to files in `./examples/output`.
+So you can begin playing right away.
+
+The following templating examples use this bit of `config.yml` configuration:
+
+```yaml
+commands:
+  templates:
+    create:
+      sprint:
+        filepath: "$MYCLI_EXAMPLES/org/sprint.erb"
+        target:
+          path: "$MYCLI_EXAMPLES/output"
+          suffix: ".org"
+        namespace_data: *sprint_data
+        namespace_subkey: 'default'
+      zet:
+        filepath: "$MYCLI_EXAMPLES/org/zet.erb"
+        target:
+          path: "$MYCLI_EXAMPLES/output"
+          suffix: ".org"
+          prefix: "<%%= today %>-"
+          permissions: '0644'   # settable on erb files only
+      bash:
+        filepath: "$MYCLI_EXAMPLES/bin/example_script.sh"
+        target:
+          path: "$MYCLI_EXAMPLES/output"
+      python:
+        filepath: "$MYCLI_EXAMPLES/bin/example_script.py"
+        target:
+          path: "$MYCLI_EXAMPLES/output"
+          suffix: ".py"
+```
+
+#### New file templating examples: bash
+
+Create a new bash script named `bob` by copying an example script to a
+target location based on the configuration above.
+
+```shell
+m template create bash bob
+m t c b boc # <- same
+m tcb bob   # <- same if using experimental feature
+```
+
+#### New file templating examples: zet
+
+Create a new Zettelkasten org file from an ERB template, prefixed with
+the current date and suffixed with `.org`.
+
+```shell
+m template create zet "how-to-eat-fish"
+m t c z "how-to-eat-fish" # <- same
+m tcz "how-to-eat-fish"   # <- same if using experimental feature
+```
+
+#### New file templating examples: sprint
+
+Create a new sprint notes file from an ERB template, suffixed with `.org`.
+
+```shell
+m template create --subkey '2022-07-07' sprint "current"
+m t c --subkey '2022-07-07' sprint "current" # <- same
+```
+
+Of course, you can modify or extend the `config.yaml` to suit your own
+file templating needs.
+
+#### Local file search examples
+
+The following local search examples use this bit of `config.yml` configuration:
+
+```yaml
+  search:
+    executable: rg
+    arguments: "-i -n --color always"
+    paths:
+      scripts:
+        - "$MYCLI_EXAMPLES/bin"
+      org:
+        - "$MYCLI_EXAMPLES/org"
+      mydocs:
+        - "$MYCLI_EXAMPLES/Documents"
+      projects:
+        apple: &apple
+          code:
+            - "$MYCLI_EXAMPLES/projects/apple/app"
+            - "$MYCLI_EXAMPLES/projects/apple/lib"
+          docs:
+            - "$MYCLI_EXAMPLES/projects/apple/README.md"
+            - "$MYCLI_EXAMPLES/projects/apple/docs"
+        orange: &orange
+         code:
+           - "$MYCLI_EXAMPLES/projects/orange/app"
+           - "$MYCLI_EXAMPLES/projects/orange/lib"
+         docs:
+           - "$MYCLI_EXAMPLES/projects/orange/README.md"
+           - "$MYCLI_EXAMPLES/projects/orange/docs"
+      fruit:
+        - *apple
+        - *orange
+```
+
+#### Local file search example: sprint
+
+Create a new sprint notes file from an ERB template, suffixed with `.org`.
+With the `-g|--group` option you can narrow the search to all paths in
+subtrees matching the key provided to the option.
+
+```shell
+m search puts      # search all defined paths for `puts`
+m s -g code puts   # search paths in subtrees labelled `code`
+m s -o "-A 2 -n"-g scripts echo # specify options for `rg`
+```
+
 ### Configure
 
-When first installed, the generated MyCLI `config.yaml` points to templates and
-other input files in `./examples` writes output to files in `./examples/output`.
-So you can begin playing right away. Soon, however, you may want to start
+After exprimenting with the intial `config.yaml`, you may want to start
 customizing your `config.yaml` file to suit your own workflow.
-
-### Usage
-
 
 ### Contribute
 See `CONTRIBUTING.md`.

@@ -14,43 +14,60 @@ globals:
   editor:
     executable: emacsclient
     format: "+#{line} #{file}"
-  name: "Tracy Atteberry"
+  full_name:  "<%= full_name %>"
+  first_name: "<%= first_name %>"
+  last_name:  "<%= last_name %>"
 commands:
-  create:
-    templates:
+  templates:
+    create:
       sprint:
-        filepath: "<%= mycli_repo_path %>/examples/org/sprint.erb"
+        filepath: "$MYCLI_EXAMPLES/org/sprint.erb"
         target:
-          path: "~/org"
+          path: "$MYCLI_EXAMPLES/output"
           suffix: ".org"
         namespace_data: *sprint_data
         namespace_subkey: 'default'
       zet:
-        filepath: "<%= mycli_repo_path %>/examples/org/zet.erb"
+        filepath: "$MYCLI_EXAMPLES/org/zet.erb"
         target:
-          path: "<%= mycli_repo_path %>/examples/output"
+          path: "$MYCLI_EXAMPLES/output"
           suffix: ".org"
-          prefix: "<%= today %>-"
+          prefix: "<%%= today %>-"
           permissions: '0644'   # settable on erb files only
       bash:
-        filepath: "<%= mycli_repo_path %>/examples/bin/example_script.sh"
+        filepath: "$MYCLI_EXAMPLES/bin/example_script.sh"
         target:
-          path: "<%= mycli_repo_path %>/examples/output"
+          path: "$MYCLI_EXAMPLES/output"
       python:
-        filepath: "<%= mycli_repo_path %>/examples/bin/example_script.py"
+        filepath: "$MYCLI_EXAMPLES/bin/example_script.py"
         target:
-          path: "<%= mycli_repo_path %>/examples/output"
+          path: "$MYCLI_EXAMPLES/output"
           suffix: ".py"
-      ruby:
-        filepath: "<%= mycli_repo_path %>/examples/bin/example_script.rb"
-        target:
-          path: "<%= mycli_repo_path %>/examples/output"
-          suffix: ".rb"
   search:
     executable: rg
     arguments: "-i -n --color always"
     paths:
-      - "<%= mycli_repo_path %>/examples/org"
-      - "<%= mycli_repo_path %>/examples/bin"
-      - "<%= mycli_repo_path %>/README.md"
-      - "<%= mycli_repo_path %>/lib"
+      scripts:
+        - "$MYCLI_EXAMPLES/bin"
+      org:
+        - "$MYCLI_EXAMPLES/org"
+      mydocs:
+        - "$MYCLI_EXAMPLES/Documents"
+      projects:
+        apple: &apple
+          code:
+            - "$MYCLI_EXAMPLES/projects/apple/app"
+            - "$MYCLI_EXAMPLES/projects/apple/lib"
+          docs:
+            - "$MYCLI_EXAMPLES/projects/apple/README.md"
+            - "$MYCLI_EXAMPLES/projects/apple/docs"
+        orange: &orange
+         code:
+           - "$MYCLI_EXAMPLES/projects/orange/app"
+           - "$MYCLI_EXAMPLES/projects/orange/lib"
+         docs:
+           - "$MYCLI_EXAMPLES/projects/orange/README.md"
+           - "$MYCLI_EXAMPLES/projects/orange/docs"
+      fruit:
+        - *apple
+        - *orange

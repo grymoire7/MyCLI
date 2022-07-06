@@ -8,6 +8,8 @@ require 'all'        # include all the local things
 class Templates < Thor
   include Thor::Actions
 
+  attr_reader :template_filepath, :target_path, :config
+
   desc 'create TEMPLATE BASENAME', 'create new file from template'
   long_desc <<-LONGDESC
     `m create` will create a new file from a specified template.
@@ -20,7 +22,7 @@ class Templates < Thor
     \x5  today............... Date.today.strftime('%Y-%m-%d')
     \x5  template_name....... the template's short name, e.g. 'bash'
     \x5  target_filename..... the fileaname being written (no path)
-    \x5  user_name........... the 'name' defined in config globals
+    \x5  full_name........... the 'name' defined in config globals
     \x5  template_filepath... the full template filepath
 
     Additional variables may be provided to the template namespace
@@ -35,17 +37,14 @@ class Templates < Thor
   option :subkey
   def create(template_name, basename)
     template_name = resolve_template_name(template_name)
-    config = templates[template_name]
-    validate_template(template_name)
-
-    template_filepath = File.expand_path(config['filepath'])
-    target_path = File.expand_path(config['target']['path'])
+    validate_config(template_name)
+    validate_io_paths
 
     namespace = config_namespace(config, options[:subkey])
     namespace.today             = Date.today.strftime('%Y-%m-%d')
     namespace.template_name     = template_name
     namespace.target_filename   = nil # set later after computed
-    namespace.author            = globals['name']
+    namespace.full_name         = globals['name']
     namespace.template_filepath = template_filepath
 
     target_filename = build_target_filename(config, basename, namespace)
@@ -79,7 +78,7 @@ class Templates < Thor
   private
 
   def templates
-    MyCLI::Config.instance.data['commands']['create']['templates']
+    MyCLI::Config.instance.data['commands']['templates']['create']
   end
 
   def globals
@@ -90,16 +89,22 @@ class Templates < Thor
     ERB.new(text).result(namespace.instance_eval { binding })
   end
 
-  def validate_template(template_name)
-    config = templates[template_name]
+  def expand_env(str)
+    str.gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) { ENV[$1] }
+  end
 
-    if config.nil?
+  def validate_config(template_name)
+    @config = templates[template_name]
+
+    if @config.nil?
       msg = set_color("No \"#{template_name}\" template was found.", :yellow)
       raise Thor::Error, msg
     end
+  end
 
-    template_filepath = File.expand_path(config['filepath'])
-    target_path = File.expand_path(config['target']['path'])
+  def validate_io_paths
+    @template_filepath = File.expand_path(expand_env(config['filepath']))
+    @target_path = File.expand_path(expand_env(config['target']['path']))
 
     # bail if template_filepath does not exist
     unless File.file?(template_filepath)
