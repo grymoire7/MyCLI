@@ -170,15 +170,18 @@ class Templates < Thor
 
   def create_file_from_erb(config, namespace)
     perms = config['target']['permissions']&.to_i(8) || 0o644
-    puts 'Filter file copy through ERB'
-    puts "perms = #{perms}, #{perms.to_s(8)}, #{perms.class}; umask = #{File.umask}"
 
     template_raw = File.read(namespace.template_filepath)
     result = apply_erb(template_raw, namespace)
     File.open(namespace.target_filepath, 'w+', perms) do |f|
       f.write(result)
     end
-    puts result
+
+    if options[:verbose]
+      puts 'Filtered file copy through ERB'
+      puts "perms = #{perms}, #{perms.to_s(8)}, #{perms.class}; umask = #{File.umask}"
+      puts result
+    end
   end
 
   def create_file_from_copy(namespace)
