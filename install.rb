@@ -26,23 +26,8 @@ class Install < Thor
     end
 
     handle_name
-    puts "Okay #{ns.first_name}, let's get started!"
     handle_ruby_version
-
-    user_exec_path = request_user_exec_path
-    ns.retry_on_error = (request_retry_on_error ? 1 : 0)
-
-    # Generate m script
-    template_filepath = File.join(__dir__, 'm.erb')
-    target_filepath = File.join(user_exec_path, 'm')
-    ns.m_filepath = target_filepath
-    generate_file(template_filepath, target_filepath, 0o0755)
-
-    # Generate config.yaml
-    template_filepath = File.join(__dir__, 'config.yaml.erb')
-    target_filepath = File.join(__dir__, 'config.yaml')
-    generate_file(template_filepath, target_filepath, 0o0644)
-
+    generate_files
     final_words
   end
   default_task :install
@@ -56,6 +41,26 @@ class Install < Thor
   def h1(str)
     print "\n"
     say set_color(str, :green, :bold)
+  end
+
+  def generate_files
+    # Generate m script
+    user_exec_path = request_user_exec_path
+    request_retry_on_error
+
+    template_filepath = File.join(__dir__, 'm.erb')
+    target_filepath = File.join(user_exec_path, 'm')
+    ns.m_filepath = target_filepath
+    generate_file(template_filepath, target_filepath, 0o0755)
+
+    # Generate config.yaml
+    template_filepath = File.join(__dir__, 'config.yaml.erb')
+    target_filepath = File.join(__dir__, 'config.yaml')
+    generate_file(template_filepath, target_filepath, 0o0644)
+
+    # Create exmaples/output directory
+    mycli_output_dir = File.join(__dir__, 'examples', 'output')
+    Dir.mkdir(mycli_output_dir) unless File.exists?(mycli_output_dir) || options[:dryrun]
   end
 
   # Returns true if Y/y is typed, false otherwise.
@@ -97,7 +102,7 @@ class Install < Thor
     ns.full_name = name
     ns.first_name = parts.shift
     ns.last_name  = parts.join(' ')
-    yes_no?("Hi #{ns.first_name}! Can I call you #{ns.first_name}? [Yn]")
+    puts "Okay #{ns.first_name}, let's get started!"
   end
 
   def request_retry_on_error
@@ -113,7 +118,9 @@ class Install < Thor
       WARNING: This will retry in this way on ANY error, not just
       command not found.
     ENDSAY
-    yes_no?("\nWould you like to turn this feature on? [yN]", 'n')
+
+    retry_on_error = yes_no?("\nWould you like to turn this feature on? [yN]", 'n')
+    ns.retry_on_error = (retry_on_error ? 1 : 0)
   end
 
   def request_user_exec_path
