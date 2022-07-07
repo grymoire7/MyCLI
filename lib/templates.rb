@@ -19,6 +19,8 @@ class Templates < Thor
     If the template file has a '.erb' extension it is treated like an
     ERB template with the following variables available:
 
+    \x5  basename............ user provided file basename
+    \x5  title............... basename.tr('-_', ' ').capitalize
     \x5  today............... Date.today.strftime('%Y-%m-%d')
     \x5  template_name....... the template's short name, e.g. 'bash'
     \x5  target_filename..... the fileaname being written (no path)
@@ -43,6 +45,8 @@ class Templates < Thor
     namespace = config_namespace(config, options[:subkey])
     namespace.today             = Date.today.strftime('%Y-%m-%d')
     namespace.template_name     = template_name
+    namespace.basename          = basename
+    namespace.title             = basename.tr('-_', ' ').capitalize
     namespace.target_filename   = nil # set later after computed
     namespace.full_name         = globals['name']
     namespace.template_filepath = template_filepath
