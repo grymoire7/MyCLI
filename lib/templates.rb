@@ -8,27 +8,19 @@ require 'all'        # include all the local things
 class Templates < Thor
   include Thor::Actions
 
-  attr_reader :template_filepath, :target_path, :config
+  attr_reader :template_filepath, :target_path, :config, :namespace
 
   desc 'create TEMPLATE BASENAME', 'create new file from template'
   long_desc <<-LONGDESC
     `m create` will create a new file from a specified template.
 
-    Template details, including name, template location, target location,
-    etc., are specified in the MyCLI `config.yaml` configuration file.
-    If the template file has a '.erb' extension it is treated like an
-    ERB template with the following variables available:
+    If the template file has a '.erb' extension it is treated like an ERB
+    template. Template namespace details (data available to an ERB template) are
+    specified in the MyCLI `config.yaml` configuration file. See
+    `config.yaml.erb` or your newly created `config.yaml` file for details.
 
-    \x5  basename............ user provided file basename
-    \x5  title............... basename.tr('-_', ' ').capitalize
-    \x5  today............... Date.today.strftime('%Y-%m-%d')
-    \x5  template_name....... the template's short name, e.g. 'bash'
-    \x5  target_filename..... the fileaname being written (no path)
-    \x5  full_name........... the 'name' defined in config globals
-    \x5  template_filepath... the full template filepath
-
-    Additional variables may be provided to the template namespace
-    through the `namespace_data` key for a template in config.yaml.
+    If the template file does not have a '.erb' extension it will simply be
+    copied to the target location.
 
     Examples:
 
@@ -36,29 +28,31 @@ class Templates < Thor
 
     See also: `m templates list` for a list of defined templates
   LONGDESC
-  option :subkey
+  option :key
   def create(template_name, basename)
+    @namespace = Hash.new
     template_name = resolve_template_name(template_name)
-    validate_config(template_name)
+    @config = find_valid_config(template_name)
+
+    populate_namespace
     validate_io_paths
 
-    namespace = config_namespace(config, options[:subkey])
-    namespace.today             = Date.today.strftime('%Y-%m-%d')
-    namespace.template_name     = template_name
-    namespace.basename          = basename
-    namespace.title             = basename.tr('-_', ' ').capitalize
-    namespace.target_filename   = nil # set later after computed
-    namespace.full_name         = globals['name']
-    namespace.template_filepath = template_filepath
+    namespace[:today]             = Date.today.strftime('%Y-%m-%d')
+    namespace[:template_name]     = template_name
+    namespace[:basename]          = basename
+    namespace[:title]             = basename.tr('-_', ' ').capitalize
+    namespace[:target_filename]   = nil # set later after computed
+    namespace[:full_name]         = globals[:full_name]
+    namespace[:template_filepath] = template_filepath
 
-    target_filename = build_target_filename(config, basename, namespace)
+    target_filename = build_target_filename(basename)
     target_filepath = File.join(target_path, target_filename)
-    namespace.target_filename = target_filename
-    namespace.target_filepath = target_filepath
+    namespace[:target_filename] = target_filename
+    namespace[:target_filepath] = target_filepath
 
     puts set_color("Creating new #{template_name} file as #{target_filepath} ...", :green)
 
-    create_file(config, namespace)
+    create_file
   end
 
   desc 'list', 'List all templates'
@@ -70,10 +64,10 @@ class Templates < Thor
     templates.each do |name, config|
       table << [
         name,
-        config['filepath'],
-        config['target']['path'],
-        config['target']['suffix'],
-        config['target']['prefix']
+        config[:filepath],
+        config[:target][:path],
+        config[:target][:suffix],
+        config[:target][:prefix]
       ]
     end
     shell.print_table(table, indent: 2)
@@ -82,33 +76,70 @@ class Templates < Thor
   private
 
   def templates
-    MyCLI::Config.instance.data['commands']['templates']['create']
+    MyCLI::Config.instance.data[:commands][:templates][:create]
   end
 
   def globals
-    MyCLI::Config.instance.data['globals']
+    MyCLI::Config.instance.data[:globals]
   end
 
-  def apply_erb(text, namespace)
-    ERB.new(text).result(namespace.instance_eval { binding })
+  def apply_erb(text)
+    erb_namespace = OpenStruct.new(namespace)
+    ERB.new(text).result(erb_namespace.instance_eval { binding })
   end
 
   def expand_env(str)
     str.gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) { ENV[$1] }
   end
 
-  def validate_config(template_name)
-    @config = templates[template_name]
-
-    if @config.nil?
+  def find_valid_config(template_name)
+    if templates[template_name].nil?
       msg = set_color("No \"#{template_name}\" template was found.", :yellow)
       raise Thor::Error, msg
     end
+
+    templates[template_name]
+  end
+
+  def populate_namespace
+
+    populate_namespace_with_predefined
+    populate_namespce_with_keyed_set
+    # TODO: populate_namespace_with_prompt_for
+  end
+
+  def populate_namespace_with_predefined
+    namespace.merge!(config.dig(:namespace, :predefined) || {})
+  end
+
+  def populate_namespce_with_keyed_set
+    keyed_set = config.dig(:namespace, :keyed_set)
+    pp config if options[:verbose]
+    return unless keyed_set
+
+    # keyed_set:
+    #   # if set_data is a URI, instead of a hash, MyCLI will attempt to fetch
+    #   # the data from the URI
+    #   set_data: *sprint_data
+    #   # key: 'default'
+    #   key_prompt: 'Enter deploy date key [YYYY-MM-DD]'
+    # TODO: check namespace_data for url
+    key = keyed_set[:key]
+    key = options[:key] if options[:key]
+    if options[:verbose]
+      puts "options[:key] = #{options[:key]}"
+      puts "keyed_set[:key] = #{keyed_set[:key]}"
+    end
+    keyed_data = keyed_set.dig(:set_data, key.to_sym)
+    namespace.merge!(keyed_data) if keyed_data
+  end
+
+  def populate_namespace_with_prompt_for
   end
 
   def validate_io_paths
-    @template_filepath = File.expand_path(expand_env(config['filepath']))
-    @target_path = File.expand_path(expand_env(config['target']['path']))
+    @template_filepath = File.expand_path(expand_env(config[:filepath]))
+    @target_path = File.expand_path(expand_env(config[:target][:path]))
 
     # bail if template_filepath does not exist
     unless File.file?(template_filepath)
@@ -136,48 +167,30 @@ class Templates < Thor
     possibles.first
   end
 
-  def config_namespace(config, subkey)
-    namespace_data = config['namespace_data']
-    # TODO: check namespace_data for url
+  def build_target_filename(basename)
+    target_suffix_raw = config[:target][:suffix] || ''
+    target_suffix = apply_erb(target_suffix_raw)
 
-    if namespace_data
-      default_subkey = config['namespace_subkey']
-
-      subkey_data = if options[:subkey] && namespace_data[subkey]
-                      namespace_data[subkey]
-                    else
-                      namespace_data[default_subkey]
-                    end
-      namespace_data = subkey_data if subkey_data
-    end
-
-    OpenStruct.new(namespace_data || {})
-  end
-
-  def build_target_filename(config, basename, namespace)
-    target_suffix_raw = config['target']['suffix'] || ''
-    target_suffix = apply_erb(target_suffix_raw, namespace)
-
-    target_prefix_raw = config['target']['prefix'] || ''
-    target_prefix = apply_erb(target_prefix_raw, namespace)
+    target_prefix_raw = config[:target][:prefix] || ''
+    target_prefix = apply_erb(target_prefix_raw)
 
     target_prefix + basename + target_suffix
   end
 
-  def create_file(config, namespace)
-    if File.extname(namespace.template_filepath) == '.erb'
-      create_file_from_erb(config, namespace)
+  def create_file
+    if File.extname(namespace[:template_filepath]) == '.erb'
+      create_file_from_erb
     else
-      create_file_from_copy(namespace)
+      create_file_from_copy
     end
   end
 
-  def create_file_from_erb(config, namespace)
-    perms = config['target']['permissions']&.to_i(8) || 0o644
+  def create_file_from_erb
+    perms = config[:target][:permissions]&.to_i(8) || 0o644
 
-    template_raw = File.read(namespace.template_filepath)
-    result = apply_erb(template_raw, namespace)
-    File.open(namespace.target_filepath, 'w+', perms) do |f|
+    template_raw = File.read(namespace[:template_filepath])
+    result = apply_erb(template_raw)
+    File.open(namespace[:target_filepath], 'w+', perms) do |f|
       f.write(result)
     end
 
@@ -188,11 +201,11 @@ class Templates < Thor
     end
   end
 
-  def create_file_from_copy(namespace)
+  def create_file_from_copy
     puts 'FileUtils.copy_file'
     FileUtils.copy_file(
-      namespace.template_filepath,
-      namespace.target_filepath,
+      namespace[:template_filepath],
+      namespace[:target_filepath],
       preserve: true
     )
   end
