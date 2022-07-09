@@ -33,28 +33,17 @@ class Templates < Thor
   LONGDESC
   option :key
   def create(template_name, basename)
+    # @namespace holds variables/keys we eventually pass
+    # as the binding context to ERB.
     @namespace = {}
     template_name = resolve_template_name(template_name)
+    # @config holds the config.yaml subtree for the specified template
     @config = find_valid_config(template_name)
     @template_filepath = find_valid_filepath(config[:filepath])
     @target_path = find_valid_directory(config.dig(:target, :path))
 
-    populate_namespace
-
-    namespace[:today]             = Date.today.strftime('%Y-%m-%d')
-    namespace[:template_name]     = template_name
-    namespace[:basename]          = basename
-    namespace[:title]             = basename.tr('-_', ' ').capitalize
-    namespace[:target_filename]   = nil # set later after computed
-    namespace[:full_name]         = globals[:full_name]
-    namespace[:template_filepath] = template_filepath
-
-    target_filename = build_target_filename(basename)
-    target_filepath = File.join(target_path, target_filename)
-    namespace[:target_filename] = target_filename
-    namespace[:target_filepath] = target_filepath
-
-    puts set_color("Creating new #{template_name} file as #{target_filepath} ...", :green)
+    populate_namespace_with_config_values
+    populate_namespace_with_generated_values(template_name, basename)
 
     create_file
   end
@@ -105,10 +94,25 @@ class Templates < Thor
     templates[template_name]
   end
 
-  def populate_namespace
+  def populate_namespace_with_config_values
     populate_namespace_with_predefined
     populate_namespace_with_keyed_set
     populate_namespace_with_prompt_for
+  end
+
+  def populate_namespace_with_generated_values(template_name, basename)
+    namespace[:today]             = Date.today.strftime('%Y-%m-%d')
+    namespace[:template_name]     = template_name
+    namespace[:basename]          = basename
+    namespace[:title]             = basename.tr('-_', ' ').capitalize
+    namespace[:target_filename]   = nil # set later after computed
+    namespace[:full_name]         = globals[:full_name]
+    namespace[:template_filepath] = template_filepath
+
+    target_filename = build_target_filename(basename)
+    target_filepath = File.join(target_path, target_filename)
+    namespace[:target_filename] = target_filename
+    namespace[:target_filepath] = target_filepath
   end
 
   def populate_namespace_with_predefined
@@ -168,6 +172,8 @@ class Templates < Thor
       msg = set_color("File not found: #{candidate}", :yellow)
       raise Thor::Error, msg
     end
+
+    candidate
   end
 
   def resolve_template_name(template_name)
