@@ -105,7 +105,7 @@ class Templates < Thor
 
     populate_namespace_with_predefined
     populate_namespce_with_keyed_set
-    # TODO: populate_namespace_with_prompt_for
+    populate_namespace_with_prompt_for
   end
 
   def populate_namespace_with_predefined
@@ -114,7 +114,6 @@ class Templates < Thor
 
   def populate_namespce_with_keyed_set
     keyed_set = config.dig(:namespace, :keyed_set)
-    pp config if options[:verbose]
     return unless keyed_set
 
     # keyed_set:
@@ -135,6 +134,17 @@ class Templates < Thor
   end
 
   def populate_namespace_with_prompt_for
+    prompt_for = config.dig(:namespace, :prompt_for)
+    return unless prompt_for
+
+    prompt_for.each do |prompt_data|
+      var_name = prompt_data[:var_name]
+      next unless var_name
+
+      prompt = prompt_data[:prompt] || "Value for #{var_name}"
+      value = ask prompt, default: prompt_data[:default]
+      namespace[var_name.to_sym] = value
+    end
   end
 
   def validate_io_paths
