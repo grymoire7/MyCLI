@@ -2,53 +2,53 @@
 
 ## Description
 MyCLI is a highly-configurable, data-driven command line tool designed for
-brevity and versitility.
+brevity and versatility.
 
 ### An origin story
 If you've used the command line for a long time you eventually accumulate a
-collection of scripts, functions, and aliases which are intended to make
-your life easier. At first, this works well and life is good. Eventually,
-however, you end up with a bunch of scripts and functions that are groups of
-similar, but not quite the same, functionality. Also, you collect aliases to try
-to make the things you do a lot as short as possible. And you discover that the
-space of available short names is very limited.
+collection of scripts, functions, and aliases which are intended to make your
+life easier. At first, this works well but eventually you end up with a bunch of
+scripts and functions that are groups of similar--but not quite the
+same--functionality, all with different names. Also, you collect aliases to try
+to make the things you do a lot as short as possible. Finally, you discover that
+the space of available short names is very limited and code if very scattered.
 
-To mitigate the problem we can write more general scripts and move aliases into
-application specific config (like using `g` for `git` and moving aliases into
-`.gitconfig`. For example, `g lg`, `g co`, etc.). This helps but it only goes
-so far.
+MyCLI aims to hide a bunch of functionality behind a single letter (m) in a
+highly configurable and extensible way. It does this in Ruby, using the Thor
+library to define tasks, with configuration through a `config.yaml` file.
 
-This problem was the impetus for this project, to a hide bunch of functionality
-behind a few simple commands and make everything highly configurable and
-extensible through a yaml config file.
+To get things started, MyCLI provides a few versatile tasks out of the box.
 
-That's all nice in theory, but we still need it to have some initial
-functionality to prove the concept. Below are the subcommands we have out of the
-box.
+### New file templating
+With `m templates create` you can create new files from templates with a lot of
+flexibility and very few keystrokes (`m t c`). New files can be created either
+by copying existing examples to a new place/name or by specifying an ERB
+template. When using templates, you can specify template data several ways in
+your `config.yaml` file. You can specify the data directly, by URL (TODO), or be
+prompted for it at generation time. You can even supply a multiple sets of data
+that is indexed/keyed however you like (e.g. by deploy date) and then specify
+that key at generation time. All of which can be flexibly defined in your
+`config.yaml` file which easily versioned and transferable to new systems.
 
-#### New file templating
-Your current editor might have some limited facility for this.
-However, I don't want this functionality to be dependent on my editor
-configuration and being able to tranfer that nicely to a new machine.
-Instead I'd rather depend on flat, versioned, text file templates.
+After install, your new `config.yaml` file will point to example templates in
+`./examples` and write new files to `./examples/output`. You'll be all set to
+start playing with the examples and/or start making your own. See
+"Experimenting" below.
 
-```shell
-m template create bash bob
-m tcb bob
-m t c zet "how-to-eat-fish"
-```
+### Local search
+Another frequent task is search. This MyCLI task (`m s`) does not try to
+recreate or replace your current text search tool (e.g `rg`, `ag`, `grep`,
+etc.). Instead it focuses on wrangling the groups of files and directories
+that you might frequently want to search.
 
-Data driven through the MyCLI configuration file (config.yaml).
+TODO: It also allows you to specify different or additional search arguments per
+search group.
 
-#### Local search
+After install, your new `config.yaml` file will point to example files and paths
+in `./examples`. You'll be all set to start playing with the examples and/or
+start defining your own search groups and options. See "Experimenting" below.
 
-```shell
-m search "search term"
-m search --options "-i" "search term"
-m search --group "code" "search term"
-```
-
-### Install
+## Install
 
 First, make sure you're using the version of ruby that you want to install Thor
 in and use to run MyCLI. Then run the commands below. The install script is
@@ -60,11 +60,13 @@ git clone https://github.com/grymoire7/MyCLI.git
 cd MyCLI && ruby install.rb
 ```
 
-### Experiment
+## Experiment
 
 When first created, the generated MyCLI `config.yaml` points to templates and
 other input files in `./examples` writes output to files in `./examples/output`.
 So you can begin playing right away.
+
+### Templates
 
 The following templating examples use this bit of `config.yml` configuration:
 
@@ -131,7 +133,7 @@ m t c --subkey '2022-07-07' sprint "current" # <- same
 Of course, you can modify or extend the `config.yaml` to suit your own
 file templating needs.
 
-#### Local file search examples
+### Search
 
 The following local search examples use this bit of `config.yml` configuration:
 
@@ -166,23 +168,25 @@ The following local search examples use this bit of `config.yml` configuration:
         - *orange
 ```
 
-#### Local file search example: sprint
+#### Local file search example
 
-Create a new sprint notes file from an ERB template, suffixed with `.org`.
 With the `-g|--group` option you can narrow the search to all paths in
 subtrees matching the key provided to the option.
 
 ```shell
+m search "search term"
+m search --group "code" "search term"
 m search puts      # search all defined paths for `puts`
 m s -g code puts   # search paths in subtrees labelled `code`
+m search --options "-i" "search term"
 m s -o "-A 2 -n"-g scripts echo # specify options for `rg`
 ```
 
-### Configure
+## Configure
 
 After exprimenting with the intial `config.yaml`, you may want to start
 customizing your `config.yaml` file to suit your own workflow.
 
-### Contribute
+## Contribute
 See `CONTRIBUTING.md`.
 
