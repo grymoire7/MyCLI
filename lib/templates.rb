@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'thor'       # the main CLI framework
 require 'erb'        # templating system
 require 'ostruct'    # to provide limited binding context to erb
@@ -5,6 +7,7 @@ require 'date'       # for erb binding context date value
 require 'fileutils'  # for read/write of templates
 require 'all'        # include all the local things
 
+# Templates defines Thor tasks to create new files from templates.
 class Templates < Thor
   include Thor::Actions
 
@@ -30,12 +33,13 @@ class Templates < Thor
   LONGDESC
   option :key
   def create(template_name, basename)
-    @namespace = Hash.new
+    @namespace = {}
     template_name = resolve_template_name(template_name)
     @config = find_valid_config(template_name)
+    @template_filepath = find_valid_filepath(config[:filepath])
+    @target_path = find_valid_directory(config.dig(:target, :path))
 
     populate_namespace
-    validate_io_paths
 
     namespace[:today]             = Date.today.strftime('%Y-%m-%d')
     namespace[:template_name]     = template_name
@@ -102,9 +106,8 @@ class Templates < Thor
   end
 
   def populate_namespace
-
     populate_namespace_with_predefined
-    populate_namespce_with_keyed_set
+    populate_namespace_with_keyed_set
     populate_namespace_with_prompt_for
   end
 
@@ -112,7 +115,7 @@ class Templates < Thor
     namespace.merge!(config.dig(:namespace, :predefined) || {})
   end
 
-  def populate_namespce_with_keyed_set
+  def populate_namespace_with_keyed_set
     keyed_set = config.dig(:namespace, :keyed_set)
     return unless keyed_set
 
@@ -147,19 +150,22 @@ class Templates < Thor
     end
   end
 
-  def validate_io_paths
-    @template_filepath = File.expand_path(expand_env(config[:filepath]))
-    @target_path = File.expand_path(expand_env(config[:target][:path]))
+  def find_valid_directory(directory)
+    candidate = File.expand_path(expand_env(directory))
 
-    # bail if template_filepath does not exist
-    unless File.file?(template_filepath)
-      msg = set_color("File not found: #{template_filepath}", :yellow)
+    unless File.directory?(candidate)
+      msg = set_color("Directory not found: #{candidate}", :yellow)
       raise Thor::Error, msg
     end
 
-    # bail if target_path does not exist
-    unless File.directory?(target_path)
-      msg = set_color("Directory not found: #{target_path}", :yellow)
+    candidate
+  end
+
+  def find_valid_filepath(filepath)
+    candidate = File.expand_path(expand_env(filepath))
+
+    unless File.file?(candidate)
+      msg = set_color("File not found: #{candidate}", :yellow)
       raise Thor::Error, msg
     end
   end
@@ -188,6 +194,10 @@ class Templates < Thor
   end
 
   def create_file
+    template = namespace[:template_name]
+    target = namespace[:target_filepath]
+    puts set_color("Creating new #{template} file as #{target} ...", :green)
+
     if File.extname(namespace[:template_filepath]) == '.erb'
       create_file_from_erb
     else
