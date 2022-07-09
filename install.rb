@@ -181,26 +181,12 @@ class Install < Thor
       Your wrapper script `m` and `config.yaml` files have been generated!
       Your initial `config.yaml` file points to files in `./examples`
       and writes any output files to `./examples/output`.
+
+      Please check out the README.md and try the examples listed there.
+      Then check out `./config.yaml` and make it your own.
     ENDSAY
 
-    print "\n"
-    say set_color('  # create a new bash script in ./examples/output', :green)
-    say set_color('  m template bash bob # same as `m t b bob`', :white)
-
-    print "\n"
-    say set_color('  # create a new sprint .org file based on a template in ./examples/output', :green)
-    say set_color('  m template sprint sarah', :white)
-    say set_color('  # ^ same as `m t s sarah`', :green)
-
-    print "\n"
-    say set_color('  # search defined paths/files for text', :green)
-    say set_color('  m search puts # same as `m s puts`', :white)
-
-    print "\n"
-    say set_color('  # explore the help', :green)
-    say set_color('  m help', :white)
-
-    say "\nCheck out `./config.yaml` and make it your own."
+    say set_color("\nEnjoy!", :green)
   end
 end
 
