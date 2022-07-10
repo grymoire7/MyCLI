@@ -14,8 +14,10 @@ class App < Thor
 
   class_option :verbose, type: :boolean
 
+  @@exit_on_failure=true
+
   def self.exit_on_failure?
-    true
+    @@exit_on_failure
   end
 
   desc 'howdy', 'Say howdy'
@@ -28,7 +30,9 @@ class App < Thor
   option :options, aliases: :o, banner: "<search options>"
   option :group, aliases: :g, banner: "<path group>"
   def search(needle)
-    Search.new.search(needle, options).each do |cmd|
+    @@exit_on_failure = false
+    cmds = Search.new.search(needle, options)
+    cmds.each do |cmd|
       results = run(cmd, capture: true)
       puts results
     end

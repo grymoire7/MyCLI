@@ -1,6 +1,9 @@
 require 'thor'       # the main CLI framework
 require 'all'        # include all the local things
 
+class MalformedConfig < StandardError
+end
+
 class Search
   attr_reader :options
 
@@ -11,108 +14,85 @@ class Search
 
   private
 
-  # Find all unique leaf values in a nested structure from yaml file.
-  #
-  # We assume only Hash and Array enumerables since input comes from a
-  # parsed yaml file.
-  #
-  # h = {
-  #   numbers: [1, 2, [3, 4, 2, [8, 9]], 5, nil],
-  #   ahash: {
-  #     one: 'one',
-  #     two: 'two',
-  #     three: 'three',
-  #     nested_array: [101, 102, [102, 103]]
-  #   },
-  #   anumber: 999,
-  #   astring: 'Howdy!'
-  # }
-  #
-  # pp find_all_values(h)
-  # => [1, 2, 3, 4, 8, 9, 5, "one", "two", "three", 101, 102, 103, 999, "Howdy!"]
-  #
-  # Note: This is overkill for our purposes... but fun to write.
-  #
-  def find_all_values(structure)
-    unless structure.is_a?(Array) || structure.is_a?(Hash)
-      return [structure]
+  # searches deeply in the hash for arrays of strings
+  def each_array_of_strings(hash, &_block)
+    stack = hash.map { |k, v| [[k], v] }
+    until stack.empty?
+      path, value = stack.pop
+      array_of_strings = (value.is_a?(Array) && value.all?(String))
+
+      yield(path, value) if array_of_strings
+
+      if value.is_a? Hash
+        value.each { |k, v| stack.push [path.dup << k, v] }
+      elsif value.is_a?(Array) && !array_of_strings
+        err = 'Only paths (strings) are allowed in arrays for search config!'
+        raise MalformedConfig, err
+        # value.each { |v| stack.push [path.dup << :array, v] }
+      end
     end
-
-    structure = structure.values if structure.is_a? Hash
-
-    structure.map { |elt| find_all_values(elt) }.flatten.uniq.compact
   end
 
-  # returns an array of objects found at all instances of a given key in a
-  # nested hash, and the found objects transformed with #find_all_values
-  #
-  # object = {
-  #   projects: {
-  #     apple: {
-  #       code: ["~/projects/apple/app", "~/projects/apple/lib"],
-  #       docs: ["~/projects/apple/README.md", "~/projects/apple/docs"]
-  #     },
-  #     orange: {
-  #       code: ["~/projects/orange/app", "~/projects/orange/lib"],
-  #       docs: ["~/projects/orange/README.md", "~/projects/orange/docs"]
-  #     }
-  #   }
-  # }
-  # pp deep_find(object, :docs)
-  # => [ "~/projects/apple/README.md",
-  #      "~/projects/apple/docs",
-  #      "~/projects/orange/README.md",
-  #      "~/projects/orange/docs"]
-  #
-  # pp deep_find(object, :apple)
-  # => [ "~/projects/apple/app",
-  #      "~/projects/apple/lib",
-  #      "~/projects/apple/README.md",
-  #      "~/projects/apple/docs"]
-  #
-  def deep_find(object, key)
-    found = []
+  def update_combined_meta(combined_meta, meta)
+    return unless meta.is_a? Hash
 
-    if object.respond_to?(:key?) && object.key?(key)
-      found << find_all_values(object[key])
+    if meta.key? :add_arguments
+      new_args = meta.delete :add_arguments
+      combined_meta[:arguments] = [combined_meta[:arguments], new_args].compact.join(' ')
     end
 
-    if object.is_a? Enumerable
-      found << object.map { |*a| deep_find(a.last, key) }
-    end
-
-    found.flatten.uniq.compact
+    combined_meta.merge!(meta)
   end
 
-  def search_paths
-    return [] if config[:paths].nil?
+  def build_combined_meta(path)
+    combined_meta = {}
 
-    if options[:group].nil?
-      find_all_values(config[:paths])
-    else
-      deep_find(config[:paths], options[:group])
+    (1..path.size).each do |i|
+      if config.dig(*path[0...i]).is_a? Hash
+        meta = config.dig(*path[0...i], :meta)
+        update_combined_meta(combined_meta, meta)
+      end
     end
+
+    combined_meta
   end
 
   def search_commands(needle)
     puts "Search options: #{options}" if options[:verbose]
+    cmds = []
 
-    exec = config[:executable] || 'rg'
-    search_options = options[:options] || config[:arguments] || ''
-    paths = search_paths
-    paths = ['.'] if paths.empty?
+    each_array_of_strings(config) do |path, value|
+      next if options[:group] && !path.include?(options[:group].to_sym)
 
-    if options[:verbose]
-      puts '----- search_paths ------'
-      pp paths
-      puts '----- search command ------'
-      puts "#{exec} #{search_options} \"#{needle}\" #{paths.join(' ')}"
+      meta = build_combined_meta(path)
+      exec = meta[:executable] || 'rg'
+      search_options = options[:options] || meta[:arguments] || ''
+      paths = value.join(' ')
+      cmd = "#{exec} #{search_options} \"#{needle}\" #{paths}"
+      cmds << cmd
+
+      if options[:verbose]
+        puts '----------------------------------'
+        puts "path:  #{path}"
+        puts "value: #{value}"
+        puts "meta:  #{meta}"
+        puts "cmd:   #{cmd}"
+        puts '----------------------------------'
+      end
     end
 
-    [ "#{exec} #{search_options} \"#{needle}\" #{paths.join(' ')}" ]
+    if options[:verbose]
+      puts '----- cmds ------'
+      pp cmds
+      puts '----- cmds.uniq ------'
+      pp cmds.uniq
+    end
+
+    cmds.uniq
   end
 
   def config
-    MyCLI::Config.instance.data[:commands][:search]
+    search_tree = MyCLI::Config.instance.data[:commands][:search]
+    { search: search_tree }
   end
 end

@@ -92,13 +92,18 @@ commands:
           path: "$MYCLI_EXAMPLES/output"
           suffix: ".py"
   search:
-    executable: rg
-    arguments: "-i -n --color always"
+    meta:
+      executable: 'rg'
+      arguments: "-i -n --color always"
     paths:
       scripts:
         - "$MYCLI_EXAMPLES/bin"
       org:
-        - "$MYCLI_EXAMPLES/org"
+        meta:
+          search_template: "^[*]+(<%%= search_term %>)"
+          add_arguments: "-A 1"
+        paths:
+          - "$MYCLI_EXAMPLES/org"
       mydocs:
         - "$MYCLI_EXAMPLES/Documents"
       projects:
@@ -110,12 +115,12 @@ commands:
             - "$MYCLI_EXAMPLES/projects/apple/README.md"
             - "$MYCLI_EXAMPLES/projects/apple/docs"
         orange: &orange
-         code:
-           - "$MYCLI_EXAMPLES/projects/orange/app"
-           - "$MYCLI_EXAMPLES/projects/orange/lib"
-         docs:
-           - "$MYCLI_EXAMPLES/projects/orange/README.md"
-           - "$MYCLI_EXAMPLES/projects/orange/docs"
+          code:
+            - "$MYCLI_EXAMPLES/projects/orange/app"
+            - "$MYCLI_EXAMPLES/projects/orange/lib"
+          docs:
+            - "$MYCLI_EXAMPLES/projects/orange/README.md"
+            - "$MYCLI_EXAMPLES/projects/orange/docs"
       fruit:
-        - *apple
-        - *orange
+        apple: *apple
+        orange: *orange
