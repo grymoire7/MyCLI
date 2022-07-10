@@ -2,8 +2,6 @@ require 'thor'       # the main CLI framework
 require 'all'        # include all the local things
 
 class Search
-  attr_reader :c
-
   def search(needle, options)
     search_command(needle, options)
   end
@@ -84,31 +82,34 @@ class Search
   end
 
   def search_paths(options)
-    return [] if config['paths'].nil?
+    return [] if config[:paths].nil?
 
     if options[:group].nil?
-      find_all_values(config['paths'])
+      find_all_values(config[:paths])
     else
-      deep_find(config['paths'], options[:group])
+      deep_find(config[:paths], options[:group])
     end
   end
 
   def search_command(needle, options)
     puts "Search options: #{options}" if options[:verbose]
 
-    exec = config['executable'] || 'rg'
-    search_options = options[:options] || config['arguments'] || ''
+    exec = config[:executable] || 'rg'
+    search_options = options[:options] || config[:arguments] || ''
     paths = search_paths(options)
+    paths = ['.'] if paths.empty?
 
     if options[:verbose]
       puts '----- search_paths ------'
       pp paths
+      puts '----- search command ------'
+      puts "#{exec} #{search_options} \"#{needle}\" #{paths.join(' ')}"
     end
 
     "#{exec} #{search_options} \"#{needle}\" #{paths.join(' ')}"
   end
 
   def config
-    MyCLI::Config.instance.data['commands']['search']
+    MyCLI::Config.instance.data[:commands][:search]
   end
 end
