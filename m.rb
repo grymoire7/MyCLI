@@ -28,9 +28,10 @@ class App < Thor
   option :options, aliases: :o, banner: "<search options>"
   option :group, aliases: :g, banner: "<path group>"
   def search(needle)
-    cmd = Search.new.search(needle, options)
-    results = run(cmd, capture: true)
-    puts results
+    Search.new.search(needle, options).each do |cmd|
+      results = run(cmd, capture: true)
+      puts results
+    end
   end
 end
 

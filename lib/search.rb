@@ -6,7 +6,7 @@ class Search
 
   def search(needle, options)
     @options = options
-    search_command(needle)
+    search_commands(needle)
   end
 
   private
@@ -94,7 +94,7 @@ class Search
     end
   end
 
-  def search_command(needle)
+  def search_commands(needle)
     puts "Search options: #{options}" if options[:verbose]
 
     exec = config[:executable] || 'rg'
@@ -109,7 +109,7 @@ class Search
       puts "#{exec} #{search_options} \"#{needle}\" #{paths.join(' ')}"
     end
 
-    "#{exec} #{search_options} \"#{needle}\" #{paths.join(' ')}"
+    [ "#{exec} #{search_options} \"#{needle}\" #{paths.join(' ')}" ]
   end
 
   def config
