@@ -2,8 +2,11 @@ require 'thor'       # the main CLI framework
 require 'all'        # include all the local things
 
 class Search
+  attr_reader :options
+
   def search(needle, options)
-    search_command(needle, options)
+    @options = options
+    search_command(needle)
   end
 
   private
@@ -81,7 +84,7 @@ class Search
     found.flatten.uniq.compact
   end
 
-  def search_paths(options)
+  def search_paths
     return [] if config[:paths].nil?
 
     if options[:group].nil?
@@ -91,12 +94,12 @@ class Search
     end
   end
 
-  def search_command(needle, options)
+  def search_command(needle)
     puts "Search options: #{options}" if options[:verbose]
 
     exec = config[:executable] || 'rg'
     search_options = options[:options] || config[:arguments] || ''
-    paths = search_paths(options)
+    paths = search_paths
     paths = ['.'] if paths.empty?
 
     if options[:verbose]
