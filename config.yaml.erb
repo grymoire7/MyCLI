@@ -98,12 +98,14 @@ commands:
     paths:
       scripts:
         - "$MYCLI_EXAMPLES/bin"
-      org:
-        meta:
-          search_template: "^[*]+(<%%= search_term %>)"
-          add_arguments: "-A 1"
+      org: &org
         paths:
           - "$MYCLI_EXAMPLES/org"
+      org_heads:
+        meta:
+          search_template: "^[*]+.*(<%%= search_term %>)"
+          add_arguments: "--follow"
+        paths: *org
       mydocs:
         - "$MYCLI_EXAMPLES/Documents"
       projects:
