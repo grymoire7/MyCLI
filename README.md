@@ -86,6 +86,7 @@ m t c b boc # <- same
 m tcb bob   # <- same if using experimental feature
 
 # Example that uses predefined data and a template.
+# It also prepends the current date to the filename (see config).
 m template create zet "how-to-eat-fish"
 m t c z "how-to-eat-fish" # <- same
 m tcz "how-to-eat-fish"   # <- same if using experimental feature
