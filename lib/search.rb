@@ -1,4 +1,6 @@
 require 'thor'       # the main CLI framework
+require 'erb'        # templating system
+require 'ostruct'    # to provide limited binding context to erb
 require 'all'        # include all the local things
 
 class MalformedConfig < StandardError
@@ -68,7 +70,11 @@ class Search
       exec = meta[:executable] || 'rg'
       search_options = options[:options] || meta[:arguments] || ''
       paths = value.join(' ')
-      cmd = "#{exec} #{search_options} \"#{needle}\" #{paths}"
+      search_term = needle
+      if meta[:search_template]
+        search_term = apply_erb(meta[:search_template], {search_term: needle})
+      end
+      cmd = "#{exec} #{search_options} \"#{search_term}\" #{paths}"
       cmds << cmd
 
       if options[:verbose]
@@ -89,6 +95,11 @@ class Search
     end
 
     cmds.uniq
+  end
+
+  def apply_erb(text, namespace)
+    erb_namespace = OpenStruct.new(namespace)
+    ERB.new(text).result(erb_namespace.instance_eval { binding })
   end
 
   def config
