@@ -41,7 +41,7 @@ recreate or replace your current text search tool (e.g `rg`, `ag`, `grep`,
 etc.). Instead it focuses on wrangling the groups of files and directories
 that you might frequently want to search.
 
-TODO: It also allows you to specify different or additional search arguments per
+It also allows you to specify different or additional search arguments per
 search group.
 
 After install, your new `config.yaml` file will point to example files and paths
@@ -68,66 +68,31 @@ So you can begin playing right away.
 
 ### Templates
 
-The following templating examples use this bit of `config.yml` configuration:
+The following templating examples uses the "commands > templates" section of the
+default `config.yml`. As you try these examples, reference that part of the
+config file, try new things, tweak the config, and generally experiment.
 
-```yaml
-commands:
-  templates:
-    create:
-      sprint:
-        filepath: "$MYCLI_EXAMPLES/org/sprint.erb"
-        target:
-          path: "$MYCLI_EXAMPLES/output"
-          suffix: ".org"
-        namespace_data: *sprint_data
-        namespace_subkey: 'default'
-      zet:
-        filepath: "$MYCLI_EXAMPLES/org/zet.erb"
-        target:
-          path: "$MYCLI_EXAMPLES/output"
-          suffix: ".org"
-          prefix: "<%%= today %>-"
-          permissions: '0644'   # settable on erb files only
-      bash:
-        filepath: "$MYCLI_EXAMPLES/bin/example_script.sh"
-        target:
-          path: "$MYCLI_EXAMPLES/output"
-      python:
-        filepath: "$MYCLI_EXAMPLES/bin/example_script.py"
-        target:
-          path: "$MYCLI_EXAMPLES/output"
-          suffix: ".py"
-```
+#### Templating examples
 
-#### New file templating examples: bash
-
-Create a new bash script named `bob` by copying an example script to a
-target location based on the configuration above.
+The output for all examples below is written to the `./output` directory.
 
 ```shell
+# Example that copies a file to a new place and name.
 m template create bash bob
 m t c b boc # <- same
 m tcb bob   # <- same if using experimental feature
-```
 
-#### New file templating examples: zet
-
-Create a new Zettelkasten org file from an ERB template, prefixed with
-the current date and suffixed with `.org`.
-
-```shell
+# Example that uses predefined data and a template.
 m template create zet "how-to-eat-fish"
 m t c z "how-to-eat-fish" # <- same
 m tcz "how-to-eat-fish"   # <- same if using experimental feature
-```
 
-#### New file templating examples: sprint
+# Example that uses a config data set with keys.
+m template create --key '2022-07-07' sprint 'current'
+m t c --key '2022-07-07' sprint "current" # <- same
 
-Create a new sprint notes file from an ERB template, suffixed with `.org`.
-
-```shell
-m template create --subkey '2022-07-07' sprint "current"
-m t c --subkey '2022-07-07' sprint "current" # <- same
+# Example that prompts the user for data.
+m t c isprint current
 ```
 
 Of course, you can modify or extend the `config.yaml` to suit your own
@@ -135,51 +100,32 @@ file templating needs.
 
 ### Search
 
-The following local search examples use this bit of `config.yml` configuration:
+The following local search examples uses the "commands > search" section of the
+default `config.yml`. As you try these examples, reference that part of the
+config file, try new things, tweak the config, and generally experiment.
 
-```yaml
-  search:
-    executable: rg
-    arguments: "-i -n --color always"
-    paths:
-      scripts:
-        - "$MYCLI_EXAMPLES/bin"
-      org:
-        - "$MYCLI_EXAMPLES/org"
-      mydocs:
-        - "$MYCLI_EXAMPLES/Documents"
-      projects:
-        apple: &apple
-          code:
-            - "$MYCLI_EXAMPLES/projects/apple/app"
-            - "$MYCLI_EXAMPLES/projects/apple/lib"
-          docs:
-            - "$MYCLI_EXAMPLES/projects/apple/README.md"
-            - "$MYCLI_EXAMPLES/projects/apple/docs"
-        orange: &orange
-         code:
-           - "$MYCLI_EXAMPLES/projects/orange/app"
-           - "$MYCLI_EXAMPLES/projects/orange/lib"
-         docs:
-           - "$MYCLI_EXAMPLES/projects/orange/README.md"
-           - "$MYCLI_EXAMPLES/projects/orange/docs"
-      fruit:
-        - *apple
-        - *orange
-```
-
-#### Local file search example
+#### Local file search examples
 
 With the `-g|--group` option you can narrow the search to all paths in
-subtrees matching the key provided to the option.
+subtrees matching the key provided to the option. With the `-o|--options`
+options you can specify diffent options for the search command.
 
 ```shell
-m search "search term"
-m search --group "code" "search term"
-m search puts      # search all defined paths for `puts`
-m s -g code puts   # search paths in subtrees labelled `code`
-m search --options "-i" "search term"
-m s -o "-A 2 -n"-g scripts echo # specify options for `rg`
+# Search all paths defined in the configuration.
+m search puts
+
+# Search group subtress defined in `config.yaml`.
+m s -g code puts   # search all paths in subtrees labelled `code`
+
+# Specify different options for search command.
+m search --options "-A 2 -n" --group scripts echo
+m s -o "-A 2 -n" -g scripts echo # <- same as above
+
+# Search all files in `./examples/org`.
+m s -g org example
+
+# Searche only heading lines in `./examples/org` files.
+m s -g org_heads example
 ```
 
 ## Configure
