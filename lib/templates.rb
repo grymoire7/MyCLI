@@ -82,7 +82,7 @@ class Templates < Thor
   end
 
   def expand_env(str)
-    str.gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) { ENV[$1] }
+    str.gsub(/\$([a-zA-Z_][a-zA-Z0-9_]*)|\${\g<1>}|%\g<1>%/) { ENV.fetch($1) }
   end
 
   def find_valid_config(template_name)

@@ -1,7 +1,9 @@
-require 'thor'       # the main CLI framework
-require 'erb'        # templating system
-require 'ostruct'    # to provide limited binding context to erb
-require 'all'        # include all the local things
+# frozen_string_literal: true
+
+require 'thor'      # the main CLI framework
+require 'erb'       # templating system
+require 'ostruct'   # to provide limited binding context to erb
+require 'all'       # include all the local things
 
 class MalformedConfig < StandardError
 end
@@ -72,11 +74,12 @@ class Search
       paths = value.join(' ')
       search_term = needle
       if meta[:search_template]
-        search_term = apply_erb(meta[:search_template], {search_term: needle})
+        search_term = apply_erb(meta[:search_template], { search_term: needle })
       end
       cmd = "#{exec} #{search_options} \"#{search_term}\" #{paths}"
       cmds << cmd
 
+      # rubocop:disable Style/Next
       if options[:verbose]
         puts '----------------------------------'
         puts "path:  #{path}"
@@ -85,6 +88,7 @@ class Search
         puts "cmd:   #{cmd}"
         puts '----------------------------------'
       end
+      # rubocop:enable Style/Next
     end
 
     if options[:verbose]

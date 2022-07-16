@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# frozen_string_literal: true
+
 require 'thor'       # the main CLI framework
 require 'ostruct'    # for creating erb namespace
 require 'erb'        # for generating file from erb
@@ -60,7 +62,7 @@ class Install < Thor
 
     # Create exmaples/output directory
     mycli_output_dir = File.join(__dir__, 'examples', 'output')
-    Dir.mkdir(mycli_output_dir) unless File.exists?(mycli_output_dir) || options[:dryrun]
+    Dir.mkdir(mycli_output_dir) unless File.exist?(mycli_output_dir) || options[:dryrun]
   end
 
   # Returns true if Y/y is typed, false otherwise.
