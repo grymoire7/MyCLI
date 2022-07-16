@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 group :development do
   gem 'guard', '~> 2.15'
+  gem 'guard-rspec', require: false
   gem 'guard-rubocop', '~> 1.5'
   gem 'pry'
   gem 'pry-byebug'

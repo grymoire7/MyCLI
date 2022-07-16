@@ -17,6 +17,11 @@ GEM
       pry (>= 0.13.0)
       shellany (~> 0.0)
       thor (>= 0.18.1)
+    guard-compat (1.2.1)
+    guard-rspec (4.7.3)
+      guard (~> 2.1)
+      guard-compat (~> 1.1)
+      rspec (>= 2.99.0, < 4.0)
     guard-rubocop (1.5.0)
       guard (~> 2.0)
       rubocop (< 2.0)
@@ -86,6 +91,7 @@ PLATFORMS
 
 DEPENDENCIES
   guard (~> 2.15)
+  guard-rspec
   guard-rubocop (~> 1.5)
   pry
   pry-byebug

@@ -3,7 +3,7 @@
 require 'thor'      # the main CLI framework
 require 'erb'       # templating system
 require 'ostruct'   # to provide limited binding context to erb
-require 'all'       # include all the local things
+require 'config'
 
 class MalformedConfig < StandardError
 end

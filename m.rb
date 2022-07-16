@@ -9,7 +9,9 @@ $PROGRAM_NAME = 'm'
 $LOAD_PATH << File.join(__dir__, 'lib')
 
 require 'thor'       # the main CLI framework
-require 'all'        # include all the local things
+require 'templates'
+require 'search'
+require 'howdy'
 
 class App < Thor
   include Thor::Actions

@@ -5,7 +5,7 @@ require 'erb'        # templating system
 require 'ostruct'    # to provide limited binding context to erb
 require 'date'       # for erb binding context date value
 require 'fileutils'  # for read/write of templates
-require 'all'        # include all the local things
+require 'config'
 
 # Templates defines Thor tasks to create new files from templates.
 class Templates < Thor
