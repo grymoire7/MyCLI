@@ -48,6 +48,19 @@ commands:
             set_data: *sprint_data
             # key: 'default'
             key_prompt: 'Enter deploy date key [YYYY-MM-DD]'
+      rsprint:
+        # This is an example that pulls data from a remote source
+        filepath: "$MYCLI_EXAMPLES/org/sprint.erb"
+        target:
+          path: "$MYCLI_EXAMPLES/output"
+          suffix: ".org"
+        namespace:
+          predefined:
+            employer: 'Spacely Space Sprockets'
+            manager: 'Cosmo Spacely'
+          keyed_set:
+            set_data: 'https://gist.githubusercontent.com/grymoire7/135a5b7450b8142ed28c24f30634a404/raw/2874dc8e1fb78a371aec8c30745a663319351fca/deployments.yaml'
+            key: '2023-07-07'
       isprint:      # example with data gathered through interactive user prompts
         filepath: "$MYCLI_EXAMPLES/org/sprint.erb"
         target:

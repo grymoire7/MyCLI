@@ -28,7 +28,7 @@ With `m templates create` you can create new files from templates with a lot of
 flexibility and very few keystrokes (`m t c`). New files can be created either
 by copying existing examples to a new place/name or by specifying an ERB
 template. When using templates, you can specify template data several ways in
-your `config.yaml` file. You can specify the data directly, by URL (TODO), or be
+your `config.yaml` file. You can specify the data directly, by URL, or be
 prompted for it at generation time. You can even supply multiple sets of data
 that is indexed/keyed however you like (e.g. by deploy date) and then specify
 that key at generation time. All of which can be flexibly defined in your

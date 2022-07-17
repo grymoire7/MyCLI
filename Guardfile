@@ -43,6 +43,7 @@ guard :rspec, cmd: "bundle exec rspec" do
   watch(rspec.spec_helper) { rspec.spec_dir }
   watch(rspec.spec_support) { rspec.spec_dir }
   watch(rspec.spec_files)
+  watch('spec/fixtures/primary_config.yaml') { rspec.spec_dir }
 
   # Ruby files
   ruby = dsl.ruby

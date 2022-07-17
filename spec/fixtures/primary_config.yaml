@@ -32,6 +32,18 @@ commands:
           keyed_set:
             set_data: *sprint_data
             key: '2022-07-07'
+      rsprint:
+        filepath: "$MYCLI_EXAMPLES/org/sprint.erb"
+        target:
+          path: "/tmp"
+          suffix: ".org"
+        namespace:
+          predefined:
+            employer: 'Spacely Space Sprockets'
+            manager: 'Cosmo Spacely'
+          keyed_set:
+            set_data: 'https://gist.githubusercontent.com/grymoire7/135a5b7450b8142ed28c24f30634a404/raw/2874dc8e1fb78a371aec8c30745a663319351fca/deployments.yaml'
+            key: '2023-07-07'
       isprint:
         filepath: "$MYCLI_EXAMPLES/org/sprint.erb"
         target:

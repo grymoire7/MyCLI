@@ -72,6 +72,24 @@ RSpec.describe Templates do
       expect(File.exist?(outfile)).to be
       File.delete(outfile)
     end
+
+    it 'creates a sprint.org file with remote data' do
+      params = %w(rsprint current)
+      options = { verbose: true }
+
+      expectation = expect { Templates.new.invoke(cmd, params, options) }
+      expectation.to output(/Creating new rsprint file as/).to_stdout
+      expectation.to output(%r(/tmp/current.org)).to_stdout
+      expectation.to output(/title:\s+Current/).to_stdout
+
+      # specific to 'default' data set
+      expectation.to output(/Deploy date:\s+2023-07-07/i).to_stdout
+      expectation.to output(/Deploy Coordinator:\s+Josh Milken/i).to_stdout
+
+      outfile = File.join('/tmp', 'current.org')
+      expect(File.exist?(outfile)).to be
+      File.delete(outfile)
+    end
   end
 
   context 'run list' do

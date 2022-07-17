@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'thor'       # the main CLI framework
+require 'net/http'   # for fetching remote template data set
+require 'uri'        # for fetching remote template data set
 require 'erb'        # templating system
 require 'ostruct'    # to provide limited binding context to erb
 require 'date'       # for erb binding context date value
@@ -123,6 +125,28 @@ class Templates < Thor
     keyed_set = config.dig(:namespace, :keyed_set)
     return unless keyed_set
 
+    key = find_valid_key(keyed_set)
+
+    if options[:verbose]
+      puts "options[:key] = #{options[:key]}"
+      puts "keyed_set[:key] = #{keyed_set[:key]}"
+      puts "computed key = #{key}"
+    end
+
+    # check set_data for url
+    keyed_data = if keyed_set[:set_data].is_a? String
+                   fetch_remote_set_data(keyed_set, key)
+                 else
+                   keyed_set.dig(:set_data, key.to_sym)
+                 end
+
+    msg = set_color('Key not found in data set!', :red)
+    raise Thor::Error, msg if keyed_data.nil?
+
+    namespace.merge!(keyed_data) if keyed_data
+  end
+
+  def find_valid_key(keyed_set)
     key = keyed_set[:key]
     key = options[:key] if options[:key]
     if key.nil?
@@ -132,20 +156,23 @@ class Templates < Thor
       msg = set_color('Key for data set is required!', :red)
       raise Thor::Error, msg if key.to_s.empty?
     end
+    key
+  end
 
-    if options[:verbose]
-      puts "options[:key] = #{options[:key]}"
-      puts "keyed_set[:key] = #{keyed_set[:key]}"
-      puts "computed key = #{key}"
+  def fetch_remote_set_data(keyed_set, key)
+    address = keyed_set[:set_data]
+    uri = URI.parse(address)
+    response = Net::HTTP.get_response uri
+    if response.code != '200'
+      raise Thor::Error, "Failed to fetch remote data from #{address}"
     end
 
-    # TODO: check set_data for url
-    keyed_data = keyed_set.dig(:set_data, key.to_sym)
-
-    msg = set_color('Key not found in data set!', :red)
-    raise Thor::Error, msg if keyed_data.nil?
-
-    namespace.merge!(keyed_data) if keyed_data
+    set_data = YAML.safe_load(
+      response.body,
+      aliases: true,
+      symbolize_names: true
+    )
+    set_data[key.to_sym]
   end
 
   def populate_namespace_with_prompt_for
