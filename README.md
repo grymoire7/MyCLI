@@ -14,7 +14,8 @@ life easier. At first, this works well but eventually you end up with a bunch of
 scripts and functions that are groups of similar--but not quite the
 same--functionality, all with different names. Also, you collect aliases to try
 to make the things you do a lot as short as possible. Finally, you discover that
-the space of available short names is very limited and code if very scattered.
+the space of available short names is very limited and code becomes very
+scattered.
 
 MyCLI aims to hide a bunch of functionality behind a single letter (m) in a
 highly configurable and extensible way. It does this in Ruby, using the Thor
@@ -28,15 +29,15 @@ flexibility and very few keystrokes (`m t c`). New files can be created either
 by copying existing examples to a new place/name or by specifying an ERB
 template. When using templates, you can specify template data several ways in
 your `config.yaml` file. You can specify the data directly, by URL (TODO), or be
-prompted for it at generation time. You can even supply a multiple sets of data
+prompted for it at generation time. You can even supply multiple sets of data
 that is indexed/keyed however you like (e.g. by deploy date) and then specify
 that key at generation time. All of which can be flexibly defined in your
-`config.yaml` file which easily versioned and transferable to new systems.
+`config.yaml` file which is easily versioned and transferable to new systems.
 
 After install, your new `config.yaml` file will point to example templates in
 `./examples` and write new files to `./examples/output`. You'll be all set to
-start playing with the examples and/or start making your own. See
-"Experimenting" below.
+start playing with the examples and/or start making your own. See the
+[Experiment](#experiment) below.
 
 ### Local search
 Another frequent task is search. This MyCLI task (`m s`) does not try to
@@ -63,6 +64,8 @@ git clone https://github.com/grymoire7/MyCLI.git
 cd MyCLI && ruby install.rb
 ```
 
+Note: MyCLI was built and tested with Ruby 3.0.1.
+
 ## Experiment
 
 When first created, the generated MyCLI `config.yaml` points to templates and
@@ -71,7 +74,7 @@ So you can begin playing right away.
 
 ### Templates
 
-The following templating examples uses the "commands > templates" section of the
+The following templating examples use the "commands > templates" section of the
 default `config.yml`. As you try these examples, reference that part of the
 config file, try new things, tweak the config, and generally experiment.
 
@@ -128,7 +131,7 @@ m s -o "-A 2 -n" -g scripts echo # <- same as above
 # Search all files in `./examples/org`.
 m s -g org example
 
-# Searche only heading lines in `./examples/org` files.
+# Search only heading lines in `./examples/org` files.
 m s -g org_heads example
 ```
 
