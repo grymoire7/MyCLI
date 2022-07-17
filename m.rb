@@ -21,7 +21,7 @@ class App < Thor
   @exit_on_failure = true
 
   def self.exit_on_failure?
-    @@exit_on_failure
+    @exit_on_failure
   end
 
   desc 'howdy', 'Say howdy'
