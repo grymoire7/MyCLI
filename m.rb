@@ -11,7 +11,6 @@ $LOAD_PATH << File.join(__dir__, 'lib')
 require 'thor'       # the main CLI framework
 require 'templates'
 require 'search'
-require 'howdy'
 
 class App < Thor
   include Thor::Actions
@@ -23,9 +22,6 @@ class App < Thor
   def self.exit_on_failure?
     @exit_on_failure
   end
-
-  desc 'howdy', 'Say howdy'
-  subcommand 'howdy', Howdy
 
   desc 'templates', 'List top all templates'
   subcommand 'templates', Templates
