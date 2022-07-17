@@ -13,7 +13,16 @@ module MyCLI
     CONFIG_FILE = "#{__dir__}/../config.yaml".freeze
 
     def initialize
-      @data = YAML.safe_load_file(CONFIG_FILE, aliases: true, symbolize_names: true)
+      load_config(CONFIG_FILE)
+    end
+
+    # public scope to facilitate testing
+    def load_config(config_path)
+      @data = YAML.safe_load_file(
+        config_path,
+        aliases: true,
+        symbolize_names: true
+      )
     end
 
     def show
