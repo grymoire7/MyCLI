@@ -20,45 +20,27 @@ globals:
 commands:
   templates:
     create:
-      sprint:       # example with keyed data set and CLI option for set_key
+      sprint:
         filepath: "$MYCLI_EXAMPLES/org/sprint.erb"
         target:
-          path: "$MYCLI_EXAMPLES/output"
+          path: "/tmp"
           suffix: ".org"
-        # namespace data that will be available to the template
         namespace:
           predefined:
-            # The following keys are automatically available
-            #   basename............ user provided file basename
-            #   title............... basename.tr('-_', ' ').capitalize
-            #   today............... Date.today.strftime('%Y-%m-%d')
-            #   template_name....... the template's short name, e.g. 'bash'
-            #   target_filename..... the fileaname being written (no path)
-            #   full_name........... the 'name' defined in config globals
-            #   template_filepath... the full template filepath
             employer: 'Spacely Space Sprockets'
             manager: 'Cosmo Spacely'
-          # The keyed_set data is like a big hash of predefined sets of
-          # namespace data. If this section is present a key must also be
-          # supplied to indicate which one to use. If set `key` is not defined
-          # here and not provided as a CLI option, MyCLI will prompt for it.
           keyed_set:
-            # if set_data is a URI, instead of a hash, MyCLI will attempt to fetch
-            # the data from the URI
             set_data: *sprint_data
-            # key: 'default'
-            key_prompt: 'Enter deploy date key [YYYY-MM-DD]'
-      isprint:      # example with data gathered through interactive user prompts
+            key: '2022-07-07'
+      isprint:
         filepath: "$MYCLI_EXAMPLES/org/sprint.erb"
         target:
-          path: "$MYCLI_EXAMPLES/output"
+          path: "/tmp"
           suffix: ".org"
         namespace:
           predefined:
             employer: 'Spacely Space Sprockets'
             manager: 'Cosmo Spacely'
-          # You may also specify template data that will MyCLI will prompt for.
-          # If a default is not provided, an empty string is assumed.
           prompt_for:
             - var_name: "deploy_date"
               prompt:   "Deploy date"
@@ -74,22 +56,18 @@ commands:
       zet:
         filepath: "$MYCLI_EXAMPLES/org/zet.erb"
         target:
-          path: "$MYCLI_EXAMPLES/output"
+          path: "/tmp"
           suffix: ".org"
           prefix: "<%= today %>-"
           permissions: '0644'   # settable on erb files only
-        # Note that there is no namespace section for this template
-        # as it only relies on the automatically provided variables.
       bash:
         filepath: "$MYCLI_EXAMPLES/bin/example_script.sh"
         target:
-          path: "$MYCLI_EXAMPLES/output"
-        # Note that there is no namespace section for this template
-        # as it is not an ERB template -- the file is simply copied.
+          path: "/tmp"
       python:
         filepath: "$MYCLI_EXAMPLES/bin/example_script.py"
         target:
-          path: "$MYCLI_EXAMPLES/output"
+          path: "/tmp"
           suffix: ".py"
   search:
     meta:
