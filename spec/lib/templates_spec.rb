@@ -5,13 +5,18 @@ require 'Templates'
 
 RSpec.describe Templates do
   context 'run create' do
+    let(:cmd) { :create }
+
     it 'creates a bash file' do
+      params = %w(bash bob)
+      options = { verbose: true }
+
       # expect(
       #   capture(:stdout) do
       #     Templates.new.invoke(:create, %w(bash bob))
       #   end.strip
       # ).to include('Creating new bash file', 'examples/output/bob')
-      expectation = expect { Templates.new.invoke(:create, %w(bash bob)) }
+      expectation = expect { Templates.new.invoke(cmd, params, options) }
       expectation.to output(/Creating new bash file/).to_stdout
       expectation.to output(%r(/tmp/bob)).to_stdout
 
@@ -21,7 +26,10 @@ RSpec.describe Templates do
     end
 
     it 'creates a python file' do
-      expectation = expect { Templates.new.invoke(:create, %w(python fred)) }
+      params = %w(python fred)
+      options = { verbose: true }
+
+      expectation = expect { Templates.new.invoke(cmd, params, options) }
       expectation.to output(/Creating new python file/).to_stdout
       expectation.to output(%r(/tmp/fred)).to_stdout
 
@@ -31,9 +39,34 @@ RSpec.describe Templates do
     end
 
     it 'creates a sprint.org file' do
-      expectation = expect { Templates.new.invoke(:create, %w(sprint current)) }
+      params = %w(sprint current)
+      options = { verbose: true }
+
+      expectation = expect { Templates.new.invoke(cmd, params, options) }
       expectation.to output(/Creating new sprint file as/).to_stdout
       expectation.to output(%r(/tmp/current.org)).to_stdout
+
+      # specific to '2022-07-07' data set
+      expectation.to output(/Deploy date:\s+2022-07-07/i).to_stdout
+      expectation.to output(/Deploy Coordinator:\s+Josh Milken/i).to_stdout
+
+      outfile = File.join('/tmp', 'current.org')
+      expect(File.exist?(outfile)).to be
+      File.delete(outfile)
+    end
+
+    it 'creates a sprint.org file with key' do
+      params = %w(sprint current)
+      options = { key: 'default', verbose: true }
+
+      expectation = expect { Templates.new.invoke(cmd, params, options) }
+      expectation.to output(/Creating new sprint file as/).to_stdout
+      expectation.to output(%r(/tmp/current.org)).to_stdout
+      expectation.to output(/title:\s+Current/).to_stdout
+
+      # specific to 'default' data set
+      expectation.to output(/Deploy date:\s+YYYY-MM-DD/i).to_stdout
+      expectation.to output(/Deploy Coordinator:\s+Dev Coordinator/i).to_stdout
 
       outfile = File.join('/tmp', 'current.org')
       expect(File.exist?(outfile)).to be

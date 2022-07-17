@@ -123,20 +123,28 @@ class Templates < Thor
     keyed_set = config.dig(:namespace, :keyed_set)
     return unless keyed_set
 
-    # keyed_set:
-    #   # if set_data is a URI, instead of a hash, MyCLI will attempt to fetch
-    #   # the data from the URI
-    #   set_data: *sprint_data
-    #   # key: 'default'
-    #   key_prompt: 'Enter deploy date key [YYYY-MM-DD]'
-    # TODO: check namespace_data for url
     key = keyed_set[:key]
     key = options[:key] if options[:key]
+    if key.nil?
+      prompt_default = 'Enter key for keyed set'
+      key_prompt = keyed_set[:key_prompt] || prompt_default
+      key = ask key_prompt
+      msg = set_color('Key for data set is required!', :red)
+      raise Thor::Error, msg if key.to_s.empty?
+    end
+
     if options[:verbose]
       puts "options[:key] = #{options[:key]}"
       puts "keyed_set[:key] = #{keyed_set[:key]}"
+      puts "computed key = #{key}"
     end
+
+    # TODO: check set_data for url
     keyed_data = keyed_set.dig(:set_data, key.to_sym)
+
+    msg = set_color('Key not found in data set!', :red)
+    raise Thor::Error, msg if keyed_data.nil?
+
     namespace.merge!(keyed_data) if keyed_data
   end
 
