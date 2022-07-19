@@ -89,7 +89,7 @@ commands:
         target:
           path: "$MYCLI_EXAMPLES/output"
           suffix: ".org"
-          prefix: "<%%= today %>-"
+          prefix: "<%%= Time.now.strftime('%Y-%m-%d-%H%M') %>-"
           permissions: '0644'   # settable on erb files only
         # Note that there is no namespace section for this template
         # as it only relies on the automatically provided variables.
