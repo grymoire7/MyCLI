@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'Templates'
+require 'templates'
 
 RSpec.describe Templates do
   context 'run create' do
