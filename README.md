@@ -1,5 +1,6 @@
 ![MIT License](https://img.shields.io/badge/license-MIT-green)
 [![Ruby](https://badgen.net/badge/icon/ruby?icon=ruby&label)](https://https://ruby-lang.org/)
+![MyCLI tests](https://github.com/grymoire7/MyCLI/actions/workflows/ruby.yml/badge.svg)
 
 # MyCLI
 
