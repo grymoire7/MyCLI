@@ -52,26 +52,40 @@ class Templates < Thor
 
   desc 'list', 'List all templates'
   def list
+    unless templates
+      puts set_color('No available templates.', :green, :bold)
+      return
+    end
+
     puts set_color("Available templates:\n", :green, :bold)
     shell = Thor::Shell::Basic.new
-    table = [['Name', 'Source path', 'Target path', 'Suffix', 'Prefix'],
-             ['----', '-----------', '-----------', '------', '------']]
-    templates.each do |name, config|
-      table << [
-        name,
-        config[:filepath],
-        config[:target][:path],
-        config[:target][:suffix],
-        config[:target][:prefix]
-      ]
-    end
+    table = build_table
     shell.print_table(table, indent: 2)
   end
 
   private
 
+  # :reek:FeatureEnvy
+  def build_table
+    table = [['Name', 'Source path', 'Target path', 'Suffix', 'Prefix'],
+             ['----', '-----------', '-----------', '------', '------']]
+
+    templates.each do |name, config|
+      target = config[:target]
+      table << [
+        name,
+        config[:filepath],
+        target[:path],
+        target[:suffix],
+        target[:prefix]
+      ]
+    end
+
+    table
+  end
+
   def templates
-    MyCLI::Config.instance.data[:commands][:templates][:create]
+    MyCLI::Config.instance.data.dig(:commands, :templates, :create)
   end
 
   def globals
@@ -88,12 +102,13 @@ class Templates < Thor
   end
 
   def find_valid_config(template_name)
-    unless templates[template_name]
+    template_config = templates[template_name]
+    unless template_config
       msg = set_color("No \"#{template_name}\" template was found.", :yellow)
       raise Thor::Error, msg
     end
 
-    templates[template_name]
+    template_config
   end
 
   def populate_namespace_with_config_values
@@ -149,8 +164,7 @@ class Templates < Thor
   end
 
   def find_valid_key(keyed_set)
-    key = keyed_set[:key]
-    key = options[:key] if options[:key]
+    key = options[:key] || keyed_set[:key]
     unless key
       prompt_default = 'Enter key for keyed set'
       key_prompt = keyed_set[:key_prompt] || prompt_default
@@ -161,6 +175,7 @@ class Templates < Thor
     key
   end
 
+  # :reek:FeatureEnvy
   def fetch_remote_set_data(keyed_set, key)
     address = keyed_set[:set_data]
     uri = URI.parse(address)

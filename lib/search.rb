@@ -27,13 +27,14 @@ class Search
 
     until stack.empty?
       path, value = stack.pop
-      array_of_strings = (value.is_a?(Array) && value.all?(String))
+      value_is_array = value.is_a?(Array)
+      array_of_strings = (value_is_array && value.all?(String))
 
       yield(path, value) if array_of_strings
 
       if value.is_a? Hash
         value.each { |key, val| stack.push [path.dup << key, val] }
-      elsif value.is_a?(Array) && !array_of_strings
+      elsif value_is_array && !array_of_strings
         err = 'Only paths (strings) are allowed in arrays for search config!'
         raise MalformedConfig, err if err
       end
@@ -69,27 +70,30 @@ class Search
     @verbose ||= options[:verbose]
   end
 
-  # :reek:RepeatedConditional
   def search_commands(needle)
     puts "Search options: #{options}" if verbose
     cmds = []
     group = options[:group]
 
-    each_array_of_strings(config) do |path, value|
-      next if group && !path.include?(group.to_sym)
+    each_array_of_strings(config) do |config_path, path_strings|
+      next if group && !config_path.include?(group.to_sym)
 
-      meta = build_combined_meta(path)
-      exec = meta[:executable] || 'rg'
-      search_options = options[:options] || meta[:arguments] || ''
-      search_term = build_search_term(needle, meta)
-      paths = value.join(' ')
-
-      cmd = "#{exec} #{search_options} \"#{search_term}\" #{paths}"
+      cmd = build_command(needle, config_path, path_strings)
       cmds << cmd
     end
 
     cmds.uniq!
     cmds
+  end
+
+  def build_command(needle, config_path, path_strings)
+    meta = build_combined_meta(config_path)
+    exec = meta[:executable] || 'rg'
+    search_options = options[:options] || meta[:arguments] || ''
+    search_term = build_search_term(needle, meta)
+    path_string = path_strings.join(' ')
+
+    "#{exec} #{search_options} \"#{search_term}\" #{path_string}"
   end
 
   def build_search_term(needle, meta)
