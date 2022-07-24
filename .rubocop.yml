@@ -31,12 +31,12 @@ Layout/HashAlignment:
 Naming/FileName:
   Description: Use snake_case for source file names.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#snake-case-files
-  Enabled: false
+  Enabled: true
   Exclude: []
 Style/GuardClause:
   Description: Check for conditionals that can be replaced with guard clauses
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#no-nested-conditionals
-  Enabled: false
+  Enabled: true
   MinBodyLength: 1
 Style/IfUnlessModifier:
   Description: Favor modifier if/unless usage when you have a single-line body.
@@ -74,7 +74,7 @@ Naming/PredicateName:
 Style/RaiseArgs:
   Description: Checks the arguments passed to raise/fail.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#exception-class-messages
-  Enabled: false
+  Enabled: true
   EnforcedStyle: exploded
   SupportedStyles:
   - compact
@@ -102,7 +102,7 @@ Style/SingleLineBlockParams:
 Style/SingleLineMethods:
   Description: Avoid single-line methods.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#no-single-line-methods
-  Enabled: false
+  Enabled: true
   AllowIfMethodIsEmpty: true
 Style/StringLiterals:
   Description: Checks if uses of quotes match the configured preference.
@@ -123,7 +123,7 @@ Style/StringLiteralsInInterpolation:
 Style/TrailingCommaInArguments:
   Description: 'Checks for trailing comma in argument lists.'
   StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#no-trailing-array-commas'
-  Enabled: false
+  Enabled: true
   EnforcedStyleForMultiline: no_comma
   # SupportedStyles:
   # - comma
@@ -132,7 +132,7 @@ Style/TrailingCommaInArguments:
 Style/TrailingCommaInHashLiteral:
   Description: 'Checks for trailing comma in hash literals.'
   StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#no-trailing-array-commas'
-  Enabled: false
+  Enabled: true
   EnforcedStyleForMultiline: no_comma
   # SupportedStyles:
   # - comma
@@ -141,7 +141,7 @@ Style/TrailingCommaInHashLiteral:
 Style/TrailingCommaInArrayLiteral:
   Description: 'Checks for trailing comma in array literals.'
   StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#no-trailing-array-commas'
-  Enabled: false
+  Enabled: true
   EnforcedStyleForMultiline: no_comma
   # SupportedStyles:
   # - comma
@@ -154,14 +154,14 @@ Metrics/AbcSize:
   Max: 15
 Metrics/ClassLength:
   Description: Avoid classes longer than 100 lines of code.
-  Enabled: false
+  Enabled: true
   CountComments: false
-  Max: 100
+  Max: 200
 Metrics/ModuleLength:
   CountComments: false
-  Max: 100
+  Max: 200
   Description: Avoid modules longer than 100 lines of code.
-  Enabled: false
+  Enabled: true
 Metrics/BlockLength:
   Exclude:
     - spec/**/*.rb
@@ -190,13 +190,13 @@ Layout/LineLength:
 Metrics/MethodLength:
   Description: Avoid methods longer than 10 lines of code.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#short-methods
-  Enabled: false
+  Enabled: true
   CountComments: false
-  Max: 10
+  Max: 20
 Metrics/ParameterLists:
   Description: Avoid parameter lists longer than three or four parameters.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#too-many-params
-  Enabled: false
+  Enabled: true
   Max: 5
   CountKeywordArgs: true
 Metrics/PerceivedComplexity:
@@ -207,32 +207,32 @@ Metrics/PerceivedComplexity:
 Lint/AssignmentInCondition:
   Description: Don't use assignment in conditions.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#safe-assignment-in-condition
-  Enabled: false
+  Enabled: true
   AllowSafeAssignment: true
 Style/InlineComment:
   Description: Avoid inline comments.
   Enabled: false
 Naming/AccessorMethodName:
   Description: Check the naming of accessor methods for get_/set_.
-  Enabled: false
+  Enabled: true
 Style/Alias:
   Description: Use alias_method instead of alias.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#alias-method
-  Enabled: false
+  Enabled: true
 Style/Documentation:
   Description: Document classes and non-namespace modules.
-  Enabled: false
+  Enabled: true
 Style/DoubleNegation:
   Description: Checks for uses of double negation (!!).
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#no-bang-bang
-  Enabled: false
+  Enabled: true
 Style/EachWithObject:
   Description: Prefer `each_with_object` over `inject` or `reduce`.
   Enabled: false
 Style/EmptyLiteral:
   Description: Prefer literals to Array.new/Hash.new/String.new.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#literal-array-hash
-  Enabled: false
+  Enabled: true
 Style/ModuleFunction:
   Description: Checks for usage of `extend self` in modules.
   StyleGuide: https://github.com/bbatsov/ruby-style-guide#module-function
@@ -272,7 +272,7 @@ Lint/SuppressedException:
   Enabled: false
 Lint/LiteralAsCondition:
   Description: Checks of literals used in conditions.
-  Enabled: false
+  Enabled: true
 Lint/LiteralInInterpolation:
   Description: Checks for literals used in interpolation.
   Enabled: false

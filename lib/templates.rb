@@ -128,11 +128,13 @@ class Templates < Thor
       file.write(result)
     end
 
+    # rubocop:disable Style/GuardClause
     if options[:verbose]
       puts 'Filtered file copy through ERB'
       puts "perms = #{perms}, #{perms.to_s(8)}, #{perms.class}; umask = #{File.umask}"
       puts result
     end
+    # rubocop:enable Style/GuardClause
   end
 
   def create_file_from_copy

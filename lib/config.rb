@@ -20,13 +20,13 @@ module MyCLI
     # public scope to facilitate testing
     def load_config(config_path)
       @data = {}
-      if File.exist?(config_path)
-        @data = YAML.safe_load_file(
-          config_path,
-          aliases: true,
-          symbolize_names: true
-        )
-      end
+      return unless File.exist?(config_path)
+
+      @data = YAML.safe_load_file(
+        config_path,
+        aliases: true,
+        symbolize_names: true
+      )
     end
 
     def show
