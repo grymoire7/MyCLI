@@ -127,9 +127,8 @@ class Templates < Thor
     namespace[:template_filepath] = template_filepath
 
     target_filename = build_target_filename(basename)
-    target_filepath = File.join(target_path, target_filename)
     namespace[:target_filename] = target_filename
-    namespace[:target_filepath] = target_filepath
+    namespace[:target_filepath] = File.join(target_path, target_filename)
   end
 
   def populate_namespace_with_predefined
@@ -141,12 +140,6 @@ class Templates < Thor
     return unless keyed_set
 
     key = find_valid_key(keyed_set)
-
-    if options[:verbose]
-      puts "options[:key] = #{options[:key]}"
-      puts "keyed_set[:key] = #{keyed_set[:key]}"
-      puts "computed key = #{key}"
-    end
 
     # check set_data for url
     keyed_data = if keyed_set[:set_data].is_a? String
