@@ -5,9 +5,11 @@ require 'erb'       # templating system
 require 'ostruct'   # to provide limited binding context to erb
 require 'config'
 
+# The MalformedConfig class provides an specialize error bad config yaml.
 class MalformedConfig < StandardError
 end
 
+# The Search class provides file search capabilities.
 class Search
   attr_reader :options
 
@@ -19,8 +21,10 @@ class Search
   private
 
   # searches deeply in the hash for arrays of strings
+  # :reek:FeatureEnvy
   def each_array_of_strings(hash, &_block)
-    stack = hash.map { |k, v| [[k], v] }
+    stack = hash.map { |key, value| [[key], value] }
+
     until stack.empty?
       path, value = stack.pop
       array_of_strings = (value.is_a?(Array) && value.all?(String))
@@ -28,60 +32,67 @@ class Search
       yield(path, value) if array_of_strings
 
       if value.is_a? Hash
-        value.each { |k, v| stack.push [path.dup << k, v] }
+        value.each { |key, val| stack.push [path.dup << key, val] }
       elsif value.is_a?(Array) && !array_of_strings
         err = 'Only paths (strings) are allowed in arrays for search config!'
-        raise MalformedConfig, err
-        # value.each { |v| stack.push [path.dup << :array, v] }
+        raise MalformedConfig, err if err
       end
     end
   end
 
-  def update_combined_meta(combined_meta, meta)
-    return unless meta.is_a? Hash
+  def merge_meta(meta_main, meta_to_merge)
+    return unless meta_to_merge.is_a? Hash
 
-    if meta.key? :add_arguments
-      new_args = meta.delete :add_arguments
-      combined_meta[:arguments] = [combined_meta[:arguments], new_args].compact.join(' ')
+    if meta_to_merge.key? :add_arguments
+      new_args = meta_to_merge.delete :add_arguments
+      meta_main[:arguments] = [meta_main[:arguments], new_args].compact.join(' ')
     end
 
-    combined_meta.merge!(meta)
+    meta_main.merge!(meta_to_merge)
   end
 
   def build_combined_meta(path)
     combined_meta = {}
 
-    (1..path.size).each do |i|
-      if config.dig(*path[0...i]).is_a? Hash
-        meta = config.dig(*path[0...i], :meta)
-        update_combined_meta(combined_meta, meta)
+    (1..path.size).each do |index|
+      path_so_far = config.dig(*path[0...index])
+      if path_so_far.is_a? Hash
+        meta = path_so_far[:meta]
+        merge_meta(combined_meta, meta)
       end
     end
 
     combined_meta
   end
 
+  def verbose
+    @verbose ||= options[:verbose]
+  end
+
+  # :reek:RepeatedConditional
   def search_commands(needle)
-    puts "Search options: #{options}" if options[:verbose]
+    puts "Search options: #{options}" if verbose
     cmds = []
+    group = options[:group]
 
     each_array_of_strings(config) do |path, value|
-      next if options[:group] && !path.include?(options[:group].to_sym)
+      next if group && !path.include?(group.to_sym)
 
       meta = build_combined_meta(path)
       exec = meta[:executable] || 'rg'
       search_options = options[:options] || meta[:arguments] || ''
       paths = value.join(' ')
       search_term = needle
-      if meta[:search_template]
-        search_term = apply_erb(meta[:search_template], { search_term: needle })
+      search_template = meta[:search_template]
+      if search_template
+        search_term = apply_erb(search_template, { search_term: needle })
       end
       cmd = "#{exec} #{search_options} \"#{search_term}\" #{paths}"
       cmds << cmd
 
       # rubocop:disable Style/Next
-      if options[:verbose]
-        puts '----------------------------------'
+      if verbose
+        puts '=================================='
         puts "path:  #{path}"
         puts "value: #{value}"
         puts "meta:  #{meta}"
@@ -91,14 +102,14 @@ class Search
       # rubocop:enable Style/Next
     end
 
-    if options[:verbose]
+    cmds.uniq!
+
+    if verbose
       puts '----- cmds ------'
       pp cmds
-      puts '----- cmds.uniq ------'
-      pp cmds.uniq
     end
 
-    cmds.uniq
+    cmds
   end
 
   def apply_erb(text, namespace)

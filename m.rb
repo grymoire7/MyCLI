@@ -8,10 +8,11 @@ $PROGRAM_NAME = 'm'
 
 $LOAD_PATH << File.join(__dir__, 'lib')
 
-require 'thor'       # the main CLI framework
+require 'thor' # the main CLI framework
 require 'templates'
 require 'search'
 
+# The App class is the main entry point for MyCLI.
 class App < Thor
   include Thor::Actions
 

@@ -5,10 +5,11 @@ require 'yaml'
 require 'pp'
 
 module MyCLI
+  # The Config class is the single(ton) source for config information.
   class Config
     include Singleton
 
-    attr_accessor :data
+    attr_reader :data
 
     CONFIG_FILE = "#{__dir__}/../config.yaml".freeze
 
@@ -30,7 +31,7 @@ module MyCLI
 
     def show
       puts 'MyCLI::Config data:'
-      pp @data
+      pp data
     end
   end
 end
