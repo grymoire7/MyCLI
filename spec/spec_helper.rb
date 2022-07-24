@@ -105,19 +105,4 @@ RSpec.configure do |config|
   # as the one that triggered the failure.
   Kernel.srand config.seed
   # =end
-
-  # rubocop:disable Security/Eval
-  def capture(stream)
-    begin
-      stream = stream.to_s
-      eval "$#{stream} = StringIO.new", binding, __FILE__, __LINE__ # $stdout = StringIO.new
-      yield
-      result = eval("$#{stream}", binding, __FILE__, __LINE__).string # ($stdout).string
-    ensure
-      eval("$#{stream} = #{stream.upcase}", binding, __FILE__, __LINE__) # $stdout = STDOUT
-    end
-
-    result
-  end
-  # rubocop:enable Security/Eval
 end

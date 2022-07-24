@@ -94,9 +94,6 @@ class Install < Thor
       msg = set_color('Okay... maybe try again later then.', :yellow)
       raise Thor::Error, msg
     end
-    # create_file ".ruby-version" do
-    #   RUBY_VERSION
-    # end
     ns.ruby_version = RUBY_VERSION
   end
 
