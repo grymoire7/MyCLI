@@ -81,35 +81,24 @@ class Search
       meta = build_combined_meta(path)
       exec = meta[:executable] || 'rg'
       search_options = options[:options] || meta[:arguments] || ''
+      search_term = build_search_term(needle, meta)
       paths = value.join(' ')
-      search_term = needle
-      search_template = meta[:search_template]
-      if search_template
-        search_term = apply_erb(search_template, { search_term: needle })
-      end
+
       cmd = "#{exec} #{search_options} \"#{search_term}\" #{paths}"
       cmds << cmd
-
-      # rubocop:disable Style/Next
-      if verbose
-        puts '=================================='
-        puts "path:  #{path}"
-        puts "value: #{value}"
-        puts "meta:  #{meta}"
-        puts "cmd:   #{cmd}"
-        puts '----------------------------------'
-      end
-      # rubocop:enable Style/Next
     end
 
     cmds.uniq!
-
-    if verbose
-      puts '----- cmds ------'
-      pp cmds
-    end
-
     cmds
+  end
+
+  def build_search_term(needle, meta)
+    search_term = needle
+    search_template = meta[:search_template]
+    if search_template
+      search_term = apply_erb(search_template, { search_term: needle })
+    end
+    search_term
   end
 
   def apply_erb(text, namespace)

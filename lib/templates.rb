@@ -88,7 +88,7 @@ class Templates < Thor
   end
 
   def find_valid_config(template_name)
-    if templates[template_name].nil?
+    unless templates[template_name]
       msg = set_color("No \"#{template_name}\" template was found.", :yellow)
       raise Thor::Error, msg
     end
@@ -140,16 +140,18 @@ class Templates < Thor
                    keyed_set.dig(:set_data, key.to_sym)
                  end
 
-    msg = set_color('Key not found in data set!', :red)
-    raise Thor::Error, msg if keyed_data.nil?
-
-    namespace.merge!(keyed_data) if keyed_data
+    if keyed_data
+      namespace.merge!(keyed_data)
+    else
+      msg = set_color('Key not found in data set!', :red)
+      raise Thor::Error, msg
+    end
   end
 
   def find_valid_key(keyed_set)
     key = keyed_set[:key]
     key = options[:key] if options[:key]
-    if key.nil?
+    unless key
       prompt_default = 'Enter key for keyed set'
       key_prompt = keyed_set[:key_prompt] || prompt_default
       key = ask key_prompt
@@ -212,23 +214,27 @@ class Templates < Thor
   end
 
   def resolve_template_name(template_name)
-    possibles = templates.keys.filter { |k| k.start_with?(template_name) }
+    possibles = templates.keys.filter { |key| key.start_with?(template_name) }
+
     case possibles.size
     when 0
       msg = set_color("Template not found: #{template_name}", :yellow)
-      raise Thor::Error, msg
     when 2..Float::INFINITY
       msg = set_color("Template name is not unique: #{template_name}", :yellow)
-      raise Thor::Error, msg
     end
+
+    raise Thor::Error, msg if msg
+
     possibles.first
   end
 
   def build_target_filename(basename)
-    target_suffix_raw = config[:target][:suffix] || ''
+    target = config[:target]
+
+    target_suffix_raw = target[:suffix] || ''
     target_suffix = apply_erb(target_suffix_raw)
 
-    target_prefix_raw = config[:target][:prefix] || ''
+    target_prefix_raw = target[:prefix] || ''
     target_prefix = apply_erb(target_prefix_raw)
 
     target_prefix + basename + target_suffix
@@ -251,8 +257,8 @@ class Templates < Thor
 
     template_raw = File.read(namespace[:template_filepath])
     result = apply_erb(template_raw)
-    File.open(namespace[:target_filepath], 'w+', perms) do |f|
-      f.write(result)
+    File.open(namespace[:target_filepath], 'w+', perms) do |file|
+      file.write(result)
     end
 
     if options[:verbose]
